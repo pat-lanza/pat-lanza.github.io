@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pat Lanza</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet" />
+</head>
+<body class="home-page">
+
+  <!-- Nav -->
+  <nav class="nav">
+    <a href="index.html" class="nav-logo">PL</a>
+    <ul class="nav-links">
+      <li><a href="index.html" class="active">Home</a></li>
+      <li><a href="experience.html">Experience</a></li>
+      <li><a href="projects.html">Projects</a></li>
+    </ul>
+    <button class="nav-menu-btn" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <canvas id="hero-canvas"></canvas>
+    <div class="hero-content">
+      <div class="hero-text">
+        <div class="hero-tag">Boston College &rsquo;27 &middot; CS + Accounting</div>
+        <h1 class="hero-name">
+          Patrick<br />
+          <span class="italic-accent">"Pat"</span> Lanza
+        </h1>
+        <p class="hero-subtitle">
+          CS Researcher &middot; Incoming KPMG Intern &middot; Builder
+        </p>
+        <div class="hero-btns">
+          <a href="experience.html" class="btn btn-primary">View Experience</a>
+          <a href="projects.html" class="btn btn-ghost">See Projects</a>
+        </div>
+        <div class="hero-links">
+          <a href="mailto:lanzapa@bc.edu" class="icon-link" aria-label="Email">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="2,4 12,13 22,4"/></svg>
+            lanzapa@bc.edu
+          </a>
+        </div>
+      </div>
+      <div class="hero-photo-wrap">
+        <div class="photo-ring photo-ring-1"></div>
+        <div class="photo-ring photo-ring-2"></div>
+        <div class="hero-photo">
+          <img src="assets/profile.jpg" alt="Pat Lanza" id="profile-img" />
+        </div>
+        <div class="photo-badge badge-gpa">
+          <span class="badge-num">3.78</span>
+          <span class="badge-label">GPA</span>
+        </div>
+        <div class="photo-badge badge-schools">
+          <span class="badge-num">2</span>
+          <span class="badge-label">Universities</span>
+        </div>
+      </div>
+    </div>
+    <div class="hero-scroll-hint">
+      <span>Scroll</span>
+      <div class="scroll-line"></div>
+    </div>
+  </section>
+
+  <!-- About -->
+  <section class="about section-pad">
+    <div class="container">
+      <div class="section-label">About Me</div>
+      <div class="about-grid">
+        <div class="about-bio">
+          <h2 class="section-title">CS student with a passion for research & real-world impact.</h2>
+          <p>I'm a junior at <strong>Boston College</strong> studying Computer Science with a minor in Accounting for Finance and Consulting. I've had the opportunity to study abroad at <strong>Universidad Carlos III de Madrid</strong>, contribute to cutting-edge ML research, and support nonprofits from Boston to Philadelphia.</p>
+          <p>This summer, I'll be joining <strong>KPMG</strong> as a Deals Advisory intern. I'm fascinated by the intersection of AI, finance, and real-world problem solving.</p>
+        </div>
+        <div class="about-cards">
+          <div class="about-card reveal">
+            <div class="card-icon">&#128218;</div>
+            <h3>Education</h3>
+            <p>B.S. Computer Science<br/>Boston College &rsquo;27</p>
+          </div>
+          <div class="about-card reveal">
+            <div class="card-icon">&#128200;</div>
+            <h3>Research</h3>
+            <p>NLP &middot; ML &middot; RAG<br/>LLMs &middot; Surrogate Losses</p>
+          </div>
+          <div class="about-card reveal">
+            <div class="card-icon">&#128188;</div>
+            <h3>Industry</h3>
+            <p>KPMG Deals Advisory<br/>Incoming Intern 2026</p>
+          </div>
+          <div class="about-card reveal">
+            <div class="card-icon">&#128187;</div>
+            <h3>Stack</h3>
+            <p>Python &middot; PyTorch &middot; Java<br/>SQL &middot; Docker &middot; C/C++</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Quick Stats -->
+  <section class="stats-section">
+    <div class="container">
+      <div class="stats-grid">
+        <div class="stat reveal">
+          <div class="stat-num" data-target="500">0</div>
+          <div class="stat-suffix">+</div>
+          <div class="stat-label">Children reached through STEM for All</div>
+        </div>
+        <div class="stat reveal">
+          <div class="stat-num" data-target="210000">0</div>
+          <div class="stat-suffix">+</div>
+          <div class="stat-label">10-K filings analyzed in research</div>
+        </div>
+        <div class="stat reveal">
+          <div class="stat-num" data-target="28">0</div>
+          <div class="stat-suffix">%</div>
+          <div class="stat-label">Model accuracy improvement in CS research</div>
+        </div>
+        <div class="stat reveal">
+          <div class="stat-num" data-target="1000">0</div>
+          <div class="stat-suffix">+</div>
+          <div class="stat-label">Students at YMCA Model UN conference</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-section section-pad">
+    <div class="container cta-inner">
+      <h2 class="cta-title">Want to know more?</h2>
+      <p class="cta-sub">Explore my full work history, research, and leadership experience.</p>
+      <a href="experience.html" class="btn btn-primary">View Full Experience &rarr;</a>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container footer-inner">
+      <span>&copy; 2026 Patrick Lanza</span>
+      <span>Westfield, NJ &middot; Boston, MA</span>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
