@@ -120,6 +120,29 @@
     </div>
   </section>
 
+<style>
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+    justify-items: center;
+    max-width: 100%;
+  }
+
+  .stat {
+    text-align: center;
+  }
+</style>
+The key changes:
+
+grid-template-columns: repeat(3, 1fr) — explicitly sets 3 equal columns
+justify-items: center — centers each item within its grid cell
+This should center all three stats evenly now! 🎯
+
+
+
+
+
   <!-- CTA -->
   <section class="cta-section section-pad">
     <div class="container cta-inner">
