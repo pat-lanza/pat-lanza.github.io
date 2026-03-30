@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chipotle DCF &mdash; Pat Lanza</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet" />
+  <style>
+    /* ── DCF-specific styles ── */
+    .dcf-main { padding: 3rem 0 6rem; }
+
+    /* Verdict banner */
+    .verdict-banner {
+      display: flex; align-items: center; gap: 1.25rem;
+      padding: 1.1rem 1.5rem;
+      background: rgba(248,113,113,0.06);
+      border: 1px solid rgba(248,113,113,0.25);
+      border-radius: var(--radius-lg);
+      margin-bottom: 3rem;
+      position: relative; overflow: hidden;
+    }
+    .verdict-banner::before {
+      content: '';
+      position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+      background: #f87171; border-radius: 4px 0 0 4px;
+    }
+    .verdict-icon { font-size: 1.5rem; }
+    .verdict-text { flex: 1; }
+    .verdict-text strong { color: #f87171; }
+    .verdict-text p { font-size: 0.875rem; color: var(--text2); margin-top: 0.2rem; }
+    .verdict-price-group { display: flex; flex-direction: column; align-items: flex-end; gap: 0.15rem; }
+    .verdict-current { font-size: 0.7rem; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; }
+    .verdict-price-val { font-size: 1.8rem; font-weight: 700; color: var(--text); line-height: 1; }
+
+    /* Scenario cards */
+    .scenario-grid {
+      display: grid; grid-template-columns: repeat(3,1fr); gap: 1.25rem;
+      margin-bottom: 3rem;
+    }
+    .scenario-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.75rem;
+      display: flex; flex-direction: column; gap: 0.5rem;
+      position: relative; overflow: hidden;
+      transition: border-color var(--transition), transform var(--transition), box-shadow var(--transition);
+    }
+    .scenario-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.35);
+    }
+    .scenario-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    }
+    .card-bear::before { background: #f87171; }
+    .card-base::before { background: var(--accent); }
+    .card-bull::before { background: var(--work); }
+    .card-bear:hover { border-color: rgba(248,113,113,0.3); }
+    .card-base:hover { border-color: rgba(108,143,255,0.3); }
+    .card-bull:hover { border-color: rgba(52,211,153,0.3); }
+
+    .scenario-label {
+      font-size: 0.7rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+    }
+    .label-bear { color: #f87171; }
+    .label-base { color: var(--accent); }
+    .label-bull { color: var(--work); }
+
+    .scenario-price {
+      font-size: 2.8rem; font-weight: 700; letter-spacing: -0.04em; line-height: 1;
+    }
+    .scenario-vs { font-size: 0.78rem; color: var(--text2); }
+    .scenario-updown {
+      font-size: 1rem; font-weight: 700; margin-top: 0.25rem;
+    }
+    .down { color: #f87171; }
+
+    .scenario-divider { height: 1px; background: var(--border); margin: 0.75rem 0; }
+    .scenario-stats { display: flex; flex-direction: column; gap: 0.4rem; }
+    .scenario-stat-row {
+      display: flex; justify-content: space-between;
+      font-size: 0.78rem;
+    }
+    .scenario-stat-row span:first-child { color: var(--text2); }
+    .scenario-stat-row span:last-child { color: var(--text); font-weight: 500; }
+
+    /* Section wrapper */
+    .dcf-section { margin-bottom: 3.5rem; }
+    .dcf-section-title {
+      font-size: 1.05rem; font-weight: 700; letter-spacing: -0.01em;
+      margin-bottom: 1.25rem; padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 0.6rem;
+    }
+    .dcf-section-title .sec-icon { font-size: 1rem; }
+
+    /* Assumptions grid */
+    .assumptions-grid {
+      display: grid; grid-template-columns: repeat(4,1fr); gap: 1rem;
+    }
+    .assumption-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+    }
+    .assumption-label {
+      font-size: 0.68rem; font-weight: 700; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--text3); margin-bottom: 0.4rem;
+    }
+    .assumption-value {
+      font-size: 1.6rem; font-weight: 700; letter-spacing: -0.03em; line-height: 1;
+      background: linear-gradient(135deg, var(--accent), var(--research));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .assumption-sub { font-size: 0.73rem; color: var(--text3); margin-top: 0.35rem; }
+
+    /* Financials table */
+    .fin-table-wrap { overflow-x: auto; border-radius: var(--radius-lg); border: 1px solid var(--border); }
+    table.fin-table {
+      width: 100%; border-collapse: collapse;
+      font-size: 0.82rem;
+    }
+    .fin-table thead th {
+      background: var(--surface2); padding: 0.75rem 1rem;
+      text-align: right; font-weight: 600; color: var(--text2);
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    .fin-table thead th:first-child { text-align: left; }
+    .fin-table tbody tr { border-bottom: 1px solid var(--border); transition: background var(--transition); }
+    .fin-table tbody tr:last-child { border-bottom: none; }
+    .fin-table tbody tr:hover { background: var(--surface2); }
+    .fin-table td {
+      padding: 0.7rem 1rem; text-align: right;
+      color: var(--text2);
+    }
+    .fin-table td:first-child { text-align: left; color: var(--text); font-weight: 500; }
+    .fin-table .row-accent td:first-child { color: var(--accent); }
+    .fin-table .row-green td:first-child { color: var(--work); }
+    .fin-table .positive { color: var(--work); }
+    .fin-table .highlighted { color: var(--text); font-weight: 600; }
+
+    /* Projections table */
+    .proj-tabs { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+    .proj-tab {
+      padding: 0.4rem 1rem; border-radius: 100px; font-size: 0.78rem; font-weight: 600;
+      border: 1px solid var(--border2); background: transparent; color: var(--text2);
+      cursor: pointer; transition: all var(--transition);
+    }
+    .proj-tab.active-bear { border-color: rgba(248,113,113,0.4); background: rgba(248,113,113,0.08); color: #f87171; }
+    .proj-tab.active-base { border-color: rgba(108,143,255,0.4); background: rgba(108,143,255,0.08); color: var(--accent); }
+    .proj-tab.active-bull { border-color: rgba(52,211,153,0.4); background: rgba(52,211,153,0.08); color: var(--work); }
+    .proj-tab:not(.active-bear):not(.active-base):not(.active-bull):hover { border-color: var(--accent); color: var(--accent); }
+
+    .proj-scenario { display: none; }
+    .proj-scenario.active { display: block; }
+
+    /* Football field */
+    .football-wrap {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 1.5rem;
+    }
+    .ff-scale {
+      position: relative; height: 24px; margin-bottom: 0.5rem; margin-left: 160px;
+    }
+    .ff-scale-labels {
+      display: flex; justify-content: space-between;
+      font-size: 0.68rem; color: var(--text3);
+    }
+    .ff-current-line {
+      position: absolute; top: 0; bottom: 0; width: 2px;
+      background: #fbbf24; z-index: 3;
+    }
+    .ff-current-label {
+      position: absolute; top: -18px;
+      font-size: 0.65rem; color: #fbbf24; font-weight: 700;
+      transform: translateX(-50%); white-space: nowrap;
+    }
+
+    .ff-rows { display: flex; flex-direction: column; gap: 0.6rem; }
+    .ff-row { display: flex; align-items: center; gap: 0; }
+    .ff-row-label {
+      width: 160px; flex-shrink: 0;
+      font-size: 0.72rem; color: var(--text2); padding-right: 0.75rem;
+      line-height: 1.3;
+    }
+    .ff-bar-area {
+      position: relative; flex: 1; height: 28px;
+    }
+    .ff-bar {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      height: 18px; border-radius: 4px; opacity: 0.8;
+    }
+    .ff-mid-dot {
+      position: absolute; top: 50%; transform: translate(-50%,-50%);
+      width: 8px; height: 8px; border-radius: 50%;
+      border: 2px solid var(--bg); z-index: 2;
+    }
+    .ff-price-label {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      font-size: 0.63rem; font-weight: 600; white-space: nowrap;
+    }
+
+    /* Sensitivity table */
+    .sens-table-wrap { overflow-x: auto; border-radius: var(--radius-lg); border: 1px solid var(--border); }
+    table.sens-table {
+      width: 100%; border-collapse: collapse; font-size: 0.8rem;
+    }
+    .sens-table th {
+      background: var(--surface2); padding: 0.65rem 0.85rem;
+      font-weight: 600; color: var(--text2); border-bottom: 1px solid var(--border);
+      text-align: center; white-space: nowrap;
+    }
+    .sens-table th:first-child { text-align: left; }
+    .sens-table td {
+      padding: 0.55rem 0.85rem; text-align: center;
+      border-bottom: 1px solid var(--border); border-right: 1px solid var(--border);
+      font-weight: 600; font-size: 0.78rem;
+      transition: filter var(--transition);
+    }
+    .sens-table td:first-child { text-align: left; color: var(--text2); font-weight: 500; }
+    .sens-table tr:last-child td { border-bottom: none; }
+    /* Heat: all below $31.25 — shade from deep red (far below) to amber (closest) */
+    .heat-1 { background: rgba(248,113,113,0.30); color: #fca5a5; }
+    .heat-2 { background: rgba(248,113,113,0.20); color: #fca5a5; }
+    .heat-3 { background: rgba(251,146,60,0.18); color: #fdba74; }
+    .heat-4 { background: rgba(251,191,36,0.14); color: #fcd34d; }
+    .heat-5 { background: rgba(251,191,36,0.08); color: #fde68a; }
+    .sens-highlight { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+    /* Takeaways */
+    .takeaways-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .takeaway-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem 1.5rem;
+      display: flex; gap: 1rem; align-items: flex-start;
+      transition: border-color var(--transition), transform var(--transition);
+    }
+    .takeaway-card:hover { border-color: var(--border2); transform: translateY(-2px); }
+    .takeaway-num {
+      font-size: 1.5rem; font-weight: 700; line-height: 1;
+      background: linear-gradient(135deg, var(--accent), var(--research));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text; flex-shrink: 0; padding-top: 0.1rem;
+    }
+    .takeaway-body h4 { font-size: 0.9rem; font-weight: 700; margin-bottom: 0.35rem; }
+    .takeaway-body p { font-size: 0.8rem; color: var(--text2); line-height: 1.6; }
+
+    /* Credit strip */
+    .credit-strip {
+      display: grid; grid-template-columns: repeat(4,1fr); gap: 1rem;
+    }
+    .credit-item {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1rem;
+      text-align: center;
+    }
+    .credit-val { font-size: 1.1rem; font-weight: 700; color: var(--work); }
+    .credit-label { font-size: 0.68rem; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 0.2rem; }
+
+    /* Disclaimer */
+    .disclaimer {
+      margin-top: 3rem; padding: 1rem 1.25rem;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); font-size: 0.72rem; color: var(--text3); line-height: 1.6;
+    }
+
+    @media (max-width: 900px) {
+      .scenario-grid { grid-template-columns: 1fr; }
+      .assumptions-grid { grid-template-columns: 1fr 1fr; }
+      .takeaways-grid { grid-template-columns: 1fr; }
+      .credit-strip { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 600px) {
+      .assumptions-grid { grid-template-columns: 1fr 1fr; }
+      .ff-row-label { width: 110px; font-size: 0.65rem; }
+    }
+  </style>
+</head>
+<body class="inner-page">
+
+  <!-- Nav -->
+  <nav class="nav">
+    <a href="index.html" class="nav-logo">PL</a>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="experience.html">Experience</a></li>
+      <li><a href="projects.html" class="active">Projects</a></li>
+      <li><a href="photos.html">Photos</a></li>
+    </ul>
+    <button class="nav-menu-btn" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+
+  <!-- Page Hero -->
+  <header class="page-hero">
+    <div class="container">
+      <div class="section-label">Projects &rsaquo; Equity Research</div>
+      <h1 class="page-hero-title">Chipotle DCF Analysis</h1>
+      <p class="page-hero-sub">A full discounted cash flow valuation of Chipotle Mexican Grill (NYSE: CMG) built from 10-K filings, OLS revenue modeling, and a three-scenario projection framework.</p>
+      <div style="display:flex; gap:0.75rem; margin-top:1.25rem; flex-wrap:wrap;">
+        <span class="tag tag-accent">Python</span>
+        <span class="tag">SEC EDGAR</span>
+        <span class="tag">10-K Analysis</span>
+        <span class="tag">OLS Regression</span>
+        <span class="tag">WACC</span>
+        <span class="tag">DCF / Gordon Growth</span>
+        <span class="tag">Sensitivity Analysis</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="container dcf-main">
+
+    <!-- Verdict -->
+    <div class="verdict-banner reveal">
+      <div class="verdict-icon">&#9888;&#65039;</div>
+      <div class="verdict-text">
+        <strong>OVERVALUED &mdash; Sell / Avoid</strong>
+        <p>At $31.25, CMG trades at a significant premium to all three valuation scenarios. Even the most optimistic bull case implies <strong>27% downside</strong>. The market is pricing in growth assumptions that go far beyond what our model can justify from fundamentals.</p>
+      </div>
+      <div class="verdict-price-group">
+        <span class="verdict-current">Current Price</span>
+        <span class="verdict-price-val">$31.25</span>
+      </div>
+    </div>
+
+    <!-- Scenario Cards -->
+    <div class="scenario-grid">
+      <!-- Bear -->
+      <div class="scenario-card card-bear reveal">
+        <div class="scenario-label label-bear">Bear Case</div>
+        <div class="scenario-price">$13.99</div>
+        <div class="scenario-vs">vs. $31.25 current</div>
+        <div class="scenario-updown down">&darr; &minus;55.2% downside</div>
+        <div class="scenario-divider"></div>
+        <div class="scenario-stats">
+          <div class="scenario-stat-row"><span>Rev Growth (2026E)</span><span>+4.4%</span></div>
+          <div class="scenario-stat-row"><span>EBITDA Margin</span><span>18.9%</span></div>
+          <div class="scenario-stat-row"><span>Enterprise Value</span><span>$18.4B</span></div>
+          <div class="scenario-stat-row"><span>TV % of EV</span><span>75.4%</span></div>
+        </div>
+      </div>
+      <!-- Base -->
+      <div class="scenario-card card-base reveal">
+        <div class="scenario-label label-base">Base Case</div>
+        <div class="scenario-price">$18.52</div>
+        <div class="scenario-vs">vs. $31.25 current</div>
+        <div class="scenario-updown down">&darr; &minus;40.7% downside</div>
+        <div class="scenario-divider"></div>
+        <div class="scenario-stats">
+          <div class="scenario-stat-row"><span>Rev Growth (2026E)</span><span>+9.2%</span></div>
+          <div class="scenario-stat-row"><span>EBITDA Margin</span><span>19.5%</span></div>
+          <div class="scenario-stat-row"><span>Enterprise Value</span><span>$24.5B</span></div>
+          <div class="scenario-stat-row"><span>TV % of EV</span><span>77.1%</span></div>
+        </div>
+      </div>
+      <!-- Bull -->
+      <div class="scenario-card card-bull reveal">
+        <div class="scenario-label label-bull">Bull Case</div>
+        <div class="scenario-price">$22.73</div>
+        <div class="scenario-vs">vs. $31.25 current</div>
+        <div class="scenario-updown down">&darr; &minus;27.3% downside</div>
+        <div class="scenario-divider"></div>
+        <div class="scenario-stats">
+          <div class="scenario-stat-row"><span>Rev Growth (2026E)</span><span>+14.0%</span></div>
+          <div class="scenario-stat-row"><span>EBITDA Margin</span><span>19.9%</span></div>
+          <div class="scenario-stat-row"><span>Enterprise Value</span><span>$30.2B</span></div>
+          <div class="scenario-stat-row"><span>TV % of EV</span><span>78.1%</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Key Assumptions -->
+    <div class="dcf-section reveal">
+      <div class="dcf-section-title"><span class="sec-icon">&#9881;&#65039;</span> Key Assumptions</div>
+      <div class="assumptions-grid">
+        <div class="assumption-card">
+          <div class="assumption-label">WACC</div>
+          <div class="assumption-value">10.0%</div>
+          <div class="assumption-sub">Beta 1.0 &middot; ERP 5.5% &middot; Rf 4.5%</div>
+        </div>
+        <div class="assumption-card">
+          <div class="assumption-label">Terminal Growth</div>
+          <div class="assumption-value">2.5%</div>
+          <div class="assumption-sub">Gordon Growth Model &amp; 12x exit multiple blended</div>
+        </div>
+        <div class="assumption-card">
+          <div class="assumption-label">Historical Rev CAGR</div>
+          <div class="assumption-value">14.0%</div>
+          <div class="assumption-sub">OLS R&sup2; = 0.991 &middot; 10 years of data</div>
+        </div>
+        <div class="assumption-card">
+          <div class="assumption-label">Projection Horizon</div>
+          <div class="assumption-value">5 Yrs</div>
+          <div class="assumption-sub">2026&ndash;2030 explicit FCF forecast</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Historical Financials -->
+    <div class="dcf-section reveal">
+      <div class="dcf-section-title"><span class="sec-icon">&#128200;</span> Historical Financials (2021&ndash;2025)</div>
+      <div class="fin-table-wrap">
+        <table class="fin-table">
+          <thead>
+            <tr>
+              <th>Metric</th>
+              <th>2021</th>
+              <th>2022</th>
+              <th>2023</th>
+              <th>2024</th>
+              <th>2025</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Revenue ($B)</td>
+              <td>$7.55</td><td>$8.63</td><td>$9.87</td><td>$11.31</td><td>$11.93</td>
+            </tr>
+            <tr>
+              <td>Revenue Growth</td>
+              <td class="positive">+26.1%</td><td class="positive">+14.4%</td><td class="positive">+14.3%</td><td class="positive">+14.6%</td><td class="positive">+5.4%</td>
+            </tr>
+            <tr class="row-accent">
+              <td>EBITDA ($B)</td>
+              <td class="highlighted">$1.06</td><td class="highlighted">$1.45</td><td class="highlighted">$1.88</td><td class="highlighted">$2.25</td><td class="highlighted">$2.30</td>
+            </tr>
+            <tr>
+              <td>EBITDA Margin</td>
+              <td>14.0%</td><td>16.8%</td><td>19.0%</td><td>19.9%</td><td>19.3%</td>
+            </tr>
+            <tr>
+              <td>EBIT Margin</td>
+              <td>10.7%</td><td>13.4%</td><td>15.8%</td><td>16.9%</td><td>16.2%</td>
+            </tr>
+            <tr>
+              <td>Net Income ($B)</td>
+              <td>$0.65</td><td>$0.90</td><td>$1.23</td><td>$1.53</td><td>$1.54</td>
+            </tr>
+            <tr>
+              <td>Net Margin</td>
+              <td>8.7%</td><td>10.4%</td><td>12.4%</td><td>13.6%</td><td>12.9%</td>
+            </tr>
+            <tr class="row-green">
+              <td>Free Cash Flow ($B)</td>
+              <td class="highlighted">$0.84</td><td class="highlighted">$0.84</td><td class="highlighted">$1.22</td><td class="highlighted">$1.51</td><td class="highlighted">$1.45</td>
+            </tr>
+            <tr>
+              <td>FCF Margin</td>
+              <td>11.1%</td><td>9.8%</td><td>12.4%</td><td>13.4%</td><td>12.1%</td>
+            </tr>
+            <tr>
+              <td>CapEx ($M)</td>
+              <td>$442</td><td>$479</td><td>$561</td><td>$594</td><td>$666</td>
+            </tr>
+            <tr>
+              <td>CapEx % of Revenue</td>
+              <td>5.9%</td><td>5.5%</td><td>5.7%</td><td>5.2%</td><td>5.6%</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Projections -->
+    <div class="dcf-section reveal">
+      <div class="dcf-section-title"><span class="sec-icon">&#128203;</span> 5-Year Projections (2026&ndash;2030)</div>
+      <div class="proj-tabs">
+        <button class="proj-tab active-bear" onclick="switchScenario('bear', this)">Bear</button>
+        <button class="proj-tab" onclick="switchScenario('base', this)">Base</button>
+        <button class="proj-tab" onclick="switchScenario('bull', this)">Bull</button>
+      </div>
+
+      <!-- Bear projections -->
+      <div class="proj-scenario active" id="proj-bear">
+        <div class="fin-table-wrap">
+          <table class="fin-table">
+            <thead>
+              <tr><th>Metric</th><th>2026E</th><th>2027E</th><th>2028E</th><th>2029E</th><th>2030E</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Revenue ($B)</td><td>$12.45</td><td>$12.93</td><td>$13.38</td><td>$13.78</td><td>$14.12</td></tr>
+              <tr><td>Revenue Growth</td><td>+4.4%</td><td>+3.9%</td><td>+3.4%</td><td>+3.0%</td><td>+2.5%</td></tr>
+              <tr class="row-accent"><td>EBITDA ($B)</td><td class="highlighted">$2.35</td><td class="highlighted">$2.38</td><td class="highlighted">$2.39</td><td class="highlighted">$2.40</td><td class="highlighted">$2.39</td></tr>
+              <tr><td>EBITDA Margin</td><td>18.9%</td><td>18.4%</td><td>17.9%</td><td>17.4%</td><td>16.9%</td></tr>
+              <tr><td>EBIT ($B)</td><td>$1.97</td><td>$1.98</td><td>$1.98</td><td>$1.97</td><td>$1.95</td></tr>
+              <tr><td>NOPAT ($B)</td><td>$1.52</td><td>$1.53</td><td>$1.53</td><td>$1.52</td><td>$1.50</td></tr>
+              <tr class="row-green"><td>Free Cash Flow ($B)</td><td class="highlighted">$1.20</td><td class="highlighted">$1.20</td><td class="highlighted">$1.20</td><td class="highlighted">$1.20</td><td class="highlighted">$1.18</td></tr>
+              <tr><td>FCF Margin</td><td>9.6%</td><td>9.3%</td><td>9.0%</td><td>8.7%</td><td>8.4%</td></tr>
+              <tr><td>PV of FCF ($B)</td><td>$1.09</td><td>$0.99</td><td>$0.90</td><td>$0.82</td><td>$0.74</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Base projections -->
+      <div class="proj-scenario" id="proj-base">
+        <div class="fin-table-wrap">
+          <table class="fin-table">
+            <thead>
+              <tr><th>Metric</th><th>2026E</th><th>2027E</th><th>2028E</th><th>2029E</th><th>2030E</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Revenue ($B)</td><td>$13.02</td><td>$14.00</td><td>$14.82</td><td>$15.43</td><td>$15.82</td></tr>
+              <tr><td>Revenue Growth</td><td>+9.2%</td><td>+7.5%</td><td>+5.8%</td><td>+4.2%</td><td>+2.5%</td></tr>
+              <tr class="row-accent"><td>EBITDA ($B)</td><td class="highlighted">$2.54</td><td class="highlighted">$2.74</td><td class="highlighted">$2.92</td><td class="highlighted">$3.05</td><td class="highlighted">$3.15</td></tr>
+              <tr><td>EBITDA Margin</td><td>19.5%</td><td>19.6%</td><td>19.7%</td><td>19.8%</td><td>19.9%</td></tr>
+              <tr><td>EBIT ($B)</td><td>$2.14</td><td>$2.31</td><td>$2.46</td><td>$2.58</td><td>$2.66</td></tr>
+              <tr><td>NOPAT ($B)</td><td>$1.65</td><td>$1.78</td><td>$1.90</td><td>$1.99</td><td>$2.05</td></tr>
+              <tr class="row-green"><td>Free Cash Flow ($B)</td><td class="highlighted">$1.28</td><td class="highlighted">$1.41</td><td class="highlighted">$1.52</td><td class="highlighted">$1.62</td><td class="highlighted">$1.69</td></tr>
+              <tr><td>FCF Margin</td><td>9.8%</td><td>10.1%</td><td>10.3%</td><td>10.5%</td><td>10.7%</td></tr>
+              <tr><td>PV of FCF ($B)</td><td>$1.17</td><td>$1.16</td><td>$1.14</td><td>$1.10</td><td>$1.05</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Bull projections -->
+      <div class="proj-scenario" id="proj-bull">
+        <div class="fin-table-wrap">
+          <table class="fin-table">
+            <thead>
+              <tr><th>Metric</th><th>2026E</th><th>2027E</th><th>2028E</th><th>2029E</th><th>2030E</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Revenue ($B)</td><td>$13.59</td><td>$15.10</td><td>$16.35</td><td>$17.22</td><td>$17.66</td></tr>
+              <tr><td>Revenue Growth</td><td>+14.0%</td><td>+11.1%</td><td>+8.2%</td><td>+5.4%</td><td>+2.5%</td></tr>
+              <tr class="row-accent"><td>EBITDA ($B)</td><td class="highlighted">$2.70</td><td class="highlighted">$3.08</td><td class="highlighted">$3.42</td><td class="highlighted">$3.68</td><td class="highlighted">$3.87</td></tr>
+              <tr><td>EBITDA Margin</td><td>19.9%</td><td>20.4%</td><td>20.9%</td><td>21.4%</td><td>21.9%</td></tr>
+              <tr><td>EBIT ($B)</td><td>$2.29</td><td>$2.62</td><td>$2.91</td><td>$3.16</td><td>$3.32</td></tr>
+              <tr><td>NOPAT ($B)</td><td>$1.76</td><td>$2.01</td><td>$2.24</td><td>$2.43</td><td>$2.56</td></tr>
+              <tr class="row-green"><td>Free Cash Flow ($B)</td><td class="highlighted">$1.35</td><td class="highlighted">$1.59</td><td class="highlighted">$1.81</td><td class="highlighted">$2.01</td><td class="highlighted">$2.16</td></tr>
+              <tr><td>FCF Margin</td><td>9.9%</td><td>10.5%</td><td>11.1%</td><td>11.6%</td><td>12.2%</td></tr>
+              <tr><td>PV of FCF ($B)</td><td>$1.23</td><td>$1.31</td><td>$1.36</td><td>$1.37</td><td>$1.34</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Football Field -->
+    <div class="dcf-section reveal">
+      <div class="dcf-section-title"><span class="sec-icon">&#127944;</span> Football Field &mdash; Implied Price Range</div>
+      <div class="football-wrap">
+        <!-- Scale header -->
+        <div style="margin-left:160px; position:relative; margin-bottom:2rem;">
+          <div style="position:relative; height:20px;">
+            <div class="ff-current-line" style="left: calc(31.25 / 36 * 100%)">
+              <span class="ff-current-label">Current $31.25</span>
+            </div>
+          </div>
+          <div class="ff-scale-labels">
+            <span>$0</span><span>$9</span><span>$18</span><span>$27</span><span>$36</span>
+          </div>
+          <div style="position:absolute; top:20px; left:0; right:0; height:1px; background:var(--border);"></div>
+        </div>
+
+        <div class="ff-rows">
+          <!-- Bear Blended -->
+          <div class="ff-row">
+            <div class="ff-row-label">Bear — Blended</div>
+            <div class="ff-bar-area">
+              <div class="ff-bar" style="left:calc(12.59/36*100%); width:calc((15.39-12.59)/36*100%); background:rgba(248,113,113,0.35); border:1px solid rgba(248,113,113,0.5);"></div>
+              <div class="ff-mid-dot" style="left:calc(13.99/36*100%); background:#f87171;"></div>
+              <span class="ff-price-label" style="left:calc(12.59/36*100% - 2px); transform:translateX(-100%) translateY(-50%); color:#f87171;">$12.59</span>
+              <span class="ff-price-label" style="left:calc(15.39/36*100% + 4px); transform:translateY(-50%); color:#f87171;">$15.39</span>
+            </div>
+          </div>
+          <!-- Bear GGM -->
+          <div class="ff-row">
+            <div class="ff-row-label">Bear — Gordon Growth</div>
+            <div class="ff-bar-area">
+              <div class="ff-bar" style="left:calc(10.00/36*100%); width:calc((12.22-10.00)/36*100%); background:rgba(248,113,113,0.2); border:1px solid rgba(248,113,113,0.35);"></div>
+              <div class="ff-mid-dot" style="left:calc(11.11/36*100%); background:#f87171; opacity:0.7;"></div>
+              <span class="ff-price-label" style="left:calc(10.00/36*100% - 2px); transform:translateX(-100%) translateY(-50%); color:#f87171; opacity:0.8;">$10.00</span>
+              <span class="ff-price-label" style="left:calc(12.22/36*100% + 4px); transform:translateY(-50%); color:#f87171; opacity:0.8;">$12.22</span>
+            </div>
+          </div>
+          <!-- Base Blended -->
+          <div class="ff-row">
+            <div class="ff-row-label">Base — Blended</div>
+            <div class="ff-bar-area">
+              <div class="ff-bar" style="left:calc(16.67/36*100%); width:calc((20.37-16.67)/36*100%); background:rgba(108,143,255,0.25); border:1px solid rgba(108,143,255,0.5);"></div>
+              <div class="ff-mid-dot" style="left:calc(18.52/36*100%); background:var(--accent);"></div>
+              <span class="ff-price-label" style="left:calc(16.67/36*100% - 2px); transform:translateX(-100%) translateY(-50%); color:var(--accent);">$16.67</span>
+              <span class="ff-price-label" style="left:calc(20.37/36*100% + 4px); transform:translateY(-50%); color:var(--accent);">$20.37</span>
+            </div>
+          </div>
+          <!-- Base GGM -->
+          <div class="ff-row">
+            <div class="ff-row-label">Base — Gordon Growth</div>
+            <div class="ff-bar-area">
+              <div class="ff-bar" style="left:calc(13.62/36*100%); width:calc((16.64-13.62)/36*100%); background:rgba(108,143,255,0.15); border:1px solid rgba(108,143,255,0.3);"></div>
+              <div class="ff-mid-dot" style="left:calc(15.13/36*100%); background:var(--accent); opacity:0.7;"></div>
+              <span class="ff-price-label" style="left:calc(13.62/36*100% - 2px); transform:translateX(-100%) translateY(-50%); color:var(--accent); opacity:0.8;">$13.62</span>
+              <span class="ff-price-label" style="left:calc(16.64/36*100% + 4px); transform:translateY(-50%); color:var(--accent); opacity:0.8;">$16.64</span>
+            </div>
+          </div>
+          <!-- Base Exit -->
+          <div class="ff-row">
+            <div class="ff-row-label">Base — Exit Multiple</div>
+            <div class="ff-bar-area">
+              <div class="ff-bar" style="left:calc(19.72/36*100%); width:calc((24.11-19.72)/36*100%); background:rgba(108,143,255,0.15); border:1px solid rgba(108,143,255,0.3);"></div>
+              <div class="ff-mid-dot" style="left:calc(21.91/36*100%); background:var(--accent); opacity:0.7;"></div>
+              <span class="ff-price-label" style="left:calc(19.72/36*100% - 2px); transform:translateX(-100%) translateY(-50%); color:var(--accent); opacity:0.8;">$19.72</span>
+              <span class="ff-price-label" style="left:calc(24.11/36*100% + 4px); transform:translateY(-50%); color:var(--accent); opacity:0.8;">$24.11</span>
+            </div>
+          </div>
+          <!-- Bull Blended -->
+          <div class="ff-row">
+            <div class="ff-row-label">Bull — Blended</div>
+            <div class="ff-bar-area">
+              <div class="ff-bar" style="left:calc(20.46/36*100%); width:calc((25.00-20.46)/36*100%); background:rgba(52,211,153,0.25); border:1px solid rgba(52,211,153,0.5);"></div>
+              <div class="ff-mid-dot" style="left:calc(22.73/36*100%); background:var(--work);"></div>
+              <span class="ff-price-label" style="left:calc(20.46/36*100% - 2px); transform:translateX(-100%) translateY(-50%); color:var(--work);">$20.46</span>
+              <span class="ff-price-label" style="left:calc(25.00/36*100% + 4px); transform:translateY(-50%); color:var(--work);">$25.00</span>
+            </div>
+          </div>
+          <!-- Bull Exit -->
+          <div class="ff-row">
+            <div class="ff-row-label">Bull — Exit Multiple</div>
+            <div class="ff-bar-area">
+              <div class="ff-bar" style="left:calc(23.97/36*100%); width:calc((29.30-23.97)/36*100%); background:rgba(52,211,153,0.15); border:1px solid rgba(52,211,153,0.3);"></div>
+              <div class="ff-mid-dot" style="left:calc(26.64/36*100%); background:var(--work); opacity:0.7;"></div>
+              <span class="ff-price-label" style="left:calc(23.97/36*100% - 2px); transform:translateX(-100%) translateY(-50%); color:var(--work); opacity:0.8;">$23.97</span>
+              <span class="ff-price-label" style="left:calc(29.30/36*100% + 4px); transform:translateY(-50%); color:var(--work); opacity:0.8;">$29.30</span>
+            </div>
+          </div>
+        </div>
+        <div style="margin-left:160px; margin-top:1rem;">
+          <div style="height:1px; background:var(--border); position:relative;">
+            <div style="position:absolute; top:0; bottom:0; width:2px; background:#fbbf24; left:calc(31.25/36*100%);"></div>
+          </div>
+          <div style="display:flex; justify-content:space-between; margin-top:0.35rem; font-size:0.65rem; color:var(--text3);">
+            <span>$0</span><span>$9</span><span>$18</span><span>$27</span><span>$36</span>
+          </div>
+        </div>
+        <div style="margin-top:1rem; display:flex; gap:1.5rem; font-size:0.72rem; color:var(--text3); flex-wrap:wrap;">
+          <span style="display:flex;align-items:center;gap:0.4rem;"><span style="width:10px;height:10px;background:#f87171;border-radius:2px;display:inline-block;"></span> Bear</span>
+          <span style="display:flex;align-items:center;gap:0.4rem;"><span style="width:10px;height:10px;background:var(--accent);border-radius:2px;display:inline-block;"></span> Base</span>
+          <span style="display:flex;align-items:center;gap:0.4rem;"><span style="width:10px;height:10px;background:var(--work);border-radius:2px;display:inline-block;"></span> Bull</span>
+          <span style="display:flex;align-items:center;gap:0.4rem;"><span style="width:2px;height:12px;background:#fbbf24;display:inline-block;"></span> Current $31.25</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sensitivity Table -->
+    <div class="dcf-section reveal">
+      <div class="dcf-section-title"><span class="sec-icon">&#128290;</span> Sensitivity — Implied Share Price (WACC &times; Terminal Growth Rate)</div>
+      <p style="font-size:0.8rem; color:var(--text2); margin-bottom:1rem;">Base case assumptions highlighted in blue. All outputs remain well below the current market price of $31.25.</p>
+      <div class="sens-table-wrap">
+        <table class="sens-table">
+          <thead>
+            <tr>
+              <th>WACC &darr; / TGR &rarr;</th>
+              <th>1.5%</th><th>2.0%</th><th>2.5%</th><th>3.0%</th><th>3.5%</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>8.0%</td>
+              <td class="heat-4">$20.94</td><td class="heat-4">$21.54</td><td class="heat-5">$22.24</td><td class="heat-5">$23.08</td><td class="heat-5">$24.10</td>
+            </tr>
+            <tr>
+              <td>8.5%</td>
+              <td class="heat-4">$20.04</td><td class="heat-4">$20.54</td><td class="heat-4">$21.12</td><td class="heat-4">$21.81</td><td class="heat-5">$22.64</td>
+            </tr>
+            <tr>
+              <td>9.0%</td>
+              <td class="heat-3">$19.24</td><td class="heat-3">$19.66</td><td class="heat-4">$20.15</td><td class="heat-4">$20.72</td><td class="heat-4">$21.40</td>
+            </tr>
+            <tr>
+              <td>9.5%</td>
+              <td class="heat-3">$18.51</td><td class="heat-3">$18.88</td><td class="heat-3">$19.29</td><td class="heat-3">$19.77</td><td class="heat-4">$20.33</td>
+            </tr>
+            <tr>
+              <td>10.0%</td>
+              <td class="heat-2">$17.85</td><td class="heat-2">$18.16</td><td class="sens-highlight heat-2">$18.52</td><td class="heat-3">$18.93</td><td class="heat-3">$19.40</td>
+            </tr>
+            <tr>
+              <td>10.5%</td>
+              <td class="heat-2">$17.24</td><td class="heat-2">$17.51</td><td class="heat-2">$17.82</td><td class="heat-2">$18.18</td><td class="heat-3">$18.58</td>
+            </tr>
+            <tr>
+              <td>11.0%</td>
+              <td class="heat-1">$16.68</td><td class="heat-1">$16.92</td><td class="heat-2">$17.19</td><td class="heat-2">$17.49</td><td class="heat-2">$17.84</td>
+            </tr>
+            <tr>
+              <td>11.5%</td>
+              <td class="heat-1">$16.15</td><td class="heat-1">$16.37</td><td class="heat-1">$16.61</td><td class="heat-1">$16.87</td><td class="heat-2">$17.17</td>
+            </tr>
+            <tr>
+              <td>12.0%</td>
+              <td class="heat-1">$15.67</td><td class="heat-1">$15.86</td><td class="heat-1">$16.07</td><td class="heat-1">$16.30</td><td class="heat-1">$16.56</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Credit Metrics -->
+    <div class="dcf-section reveal">
+      <div class="dcf-section-title"><span class="sec-icon">&#127959;&#65039;</span> Credit &amp; Balance Sheet Quality</div>
+      <div class="credit-strip">
+        <div class="credit-item">
+          <div class="credit-val">$0</div>
+          <div class="credit-label">Long-Term Debt</div>
+        </div>
+        <div class="credit-item">
+          <div class="credit-val">$(351M)</div>
+          <div class="credit-label">Net Debt (Net Cash)</div>
+        </div>
+        <div class="credit-item">
+          <div class="credit-val">&infin;</div>
+          <div class="credit-label">Interest Coverage (EBIT / Interest)</div>
+        </div>
+        <div class="credit-item">
+          <div class="credit-val">$350M</div>
+          <div class="credit-label">Cash on Balance Sheet</div>
+        </div>
+      </div>
+      <p style="font-size:0.8rem; color:var(--text2); margin-top:1rem;">Chipotle carries zero long-term debt and a net cash position of ~$351M. This is a significant credit strength — the clean balance sheet means 100% of firm value flows to equity holders and financial distress risk is negligible. That said, it also means there is no debt tax shield contributing to a lower WACC.</p>
+    </div>
+
+    <!-- Takeaways -->
+    <div class="dcf-section reveal">
+      <div class="dcf-section-title"><span class="sec-icon">&#128161;</span> Key Takeaways</div>
+      <div class="takeaways-grid">
+        <div class="takeaway-card">
+          <div class="takeaway-num">01</div>
+          <div class="takeaway-body">
+            <h4>Significant Overvaluation Across All Scenarios</h4>
+            <p>At $31.25, CMG trades above every methodology tested. Even the most optimistic scenario — bull case, exit multiple — tops out at $29.30, implying at minimum a 6% premium the market has baked in that fundamentals don't support.</p>
+          </div>
+        </div>
+        <div class="takeaway-card">
+          <div class="takeaway-num">02</div>
+          <div class="takeaway-body">
+            <h4>High Terminal Value Dependency (75&ndash;78% of EV)</h4>
+            <p>The vast majority of value is in the terminal value, not the explicit forecast period. This makes the valuation highly sensitive to assumptions about long-run growth and WACC — small changes in either produce large swings in implied price.</p>
+          </div>
+        </div>
+        <div class="takeaway-card">
+          <div class="takeaway-num">03</div>
+          <div class="takeaway-body">
+            <h4>Revenue Growth Decelerating</h4>
+            <p>After posting a 14% CAGR over the past decade, 2025 revenue growth slowed to just 5.4% — the weakest in the dataset. The market may be pricing in a reacceleration that our OLS model does not project without clear catalysts.</p>
+          </div>
+        </div>
+        <div class="takeaway-card">
+          <div class="takeaway-num">04</div>
+          <div class="takeaway-body">
+            <h4>Pristine Balance Sheet — But No Debt Shield</h4>
+            <p>Zero long-term debt and $350M in cash means negligible credit risk and maximum financial flexibility. However, the lack of leverage means Chipotle cannot lower its WACC through cheap debt financing, keeping the discount rate at 10%.</p>
+          </div>
+        </div>
+        <div class="takeaway-card">
+          <div class="takeaway-num">05</div>
+          <div class="takeaway-body">
+            <h4>Sensitivity Confirms No Margin of Safety</h4>
+            <p>The full 9&times;5 sensitivity matrix spans WACC from 8%&ndash;12% and TGR from 1.5%&ndash;3.5%. The highest implied price in any cell is $24.10. To justify $31.25, one would need a WACC below 8% or a terminal growth assumption above what is realistic for a mature restaurant chain.</p>
+          </div>
+        </div>
+        <div class="takeaway-card">
+          <div class="takeaway-num">06</div>
+          <div class="takeaway-body">
+            <h4>Strong Operational Quality — Valuation is the Problem</h4>
+            <p>This is not a story about a bad business. EBITDA margins have expanded from 14% in 2021 to ~19% in 2025, FCF generation is strong and growing, and ROIC is ~52%. The issue is purely one of price paid — the market demands a premium that DCF fundamentals cannot validate.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Methodology -->
+    <div class="dcf-section reveal">
+      <div class="dcf-section-title"><span class="sec-icon">&#128196;</span> Methodology</div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+        <div class="assumption-card">
+          <div class="assumption-label">Data Source</div>
+          <div style="font-size:0.85rem; color:var(--text2); margin-top:0.35rem; line-height:1.6;">SEC EDGAR 10-K filings (2016&ndash;2025) pulled programmatically via Python. Revenue trend modeled with OLS regression (R&sup2; = 0.991, p &lt; 0.001).</div>
+        </div>
+        <div class="assumption-card">
+          <div class="assumption-label">Valuation Framework</div>
+          <div style="font-size:0.85rem; color:var(--text2); margin-top:0.35rem; line-height:1.6;">5-year explicit FCF forecast discounted at WACC (10%). Terminal value blended 50/50 between Gordon Growth Model and 12&times; EBITDA exit multiple.</div>
+        </div>
+        <div class="assumption-card">
+          <div class="assumption-label">Scenario Construction</div>
+          <div style="font-size:0.85rem; color:var(--text2); margin-top:0.35rem; line-height:1.6;">Three scenarios built by varying revenue growth rates (decelerating to 2.5% terminal) and EBITDA margin assumptions around the base case. WACC held constant.</div>
+        </div>
+        <div class="assumption-card">
+          <div class="assumption-label">Sensitivity</div>
+          <div style="font-size:0.85rem; color:var(--text2); margin-top:0.35rem; line-height:1.6;">9&times;5 WACC &times; TGR sensitivity grid (WACC: 8%&ndash;12%, TGR: 1.5%&ndash;3.5%) run on the base scenario to test robustness of the central estimate.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="disclaimer">
+      <strong>Disclaimer:</strong> This analysis is a personal academic project created for portfolio purposes only. It does not constitute financial advice, a solicitation, or a recommendation to buy or sell any security. All projections are forward-looking estimates subject to significant uncertainty. Chipotle Mexican Grill (CMG) is a publicly traded company and all financial data is sourced from publicly available SEC filings.
+    </div>
+
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-inner">
+      <span>&copy; 2026 Patrick Lanza</span>
+      <span>Analysis Date: March 30, 2026</span>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+  <script>
+    function switchScenario(s, btn) {
+      document.querySelectorAll('.proj-scenario').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.proj-tab').forEach(el => {
+        el.classList.remove('active-bear','active-base','active-bull');
+      });
+      document.getElementById('proj-' + s).classList.add('active');
+      btn.classList.add('active-' + s);
+    }
+  </script>
+</body>
+</html>

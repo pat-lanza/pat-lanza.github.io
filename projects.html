@@ -36,29 +36,32 @@
 
   <main class="container projects-main">
 
-    <!-- Empty state -->
-    <div class="projects-empty reveal">
-      <div class="empty-icon">
-        <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect x="10" y="20" width="60" height="45" rx="4" stroke="currentColor" stroke-width="2.5" stroke-dasharray="6 4"/>
-          <path d="M25 35 L40 50 L55 35" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M40 50 L40 20" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
-          <circle cx="62" cy="18" r="8" fill="var(--accent)" opacity="0.15" stroke="var(--accent)" stroke-width="2"/>
-          <path d="M62 15 L62 21 M59 18 L65 18" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"/>
-        </svg>
-      </div>
-      <h2 class="empty-title">Projects coming soon</h2>
-      <p class="empty-sub">I'm currently working on a few things. Check back soon — this page will be filled with builds, experiments, and research code.</p>
-      <div class="empty-tags">
-        <span class="pill">ML / AI</span>
-        <span class="pill">Full Stack</span>
-        <span class="pill">Finance &amp; Data</span>
-        <span class="pill">Open Source</span>
-      </div>
-    </div>
-
-    <!-- Placeholder cards (ghost state) -->
     <div class="projects-grid">
+
+      <!-- Chipotle DCF -->
+      <a href="chipotle-dcf.html" class="project-card project-card-real reveal">
+        <div class="project-card-top">
+          <div class="project-type-label">Equity Research</div>
+          <div class="project-verdict project-verdict-sell">SELL</div>
+        </div>
+        <h2 class="project-title">Chipotle Mexican Grill — DCF Valuation</h2>
+        <p class="project-desc">Full discounted cash flow model built from 10-K SEC filings. Three-scenario framework (Bear / Base / Bull) with OLS revenue modeling, WACC derivation, Gordon Growth + exit multiple terminal value, and a 9&times;5 sensitivity analysis.</p>
+        <div class="project-meta-row">
+          <span class="project-meta-item">&#128200; Base: <strong>$18.52</strong></span>
+          <span class="project-meta-item">&#128204; Current: <strong style="color:#f87171;">$31.25</strong></span>
+          <span class="project-meta-item">&#11015;&#65039; <strong style="color:#f87171;">&minus;40.7%</strong> implied</span>
+        </div>
+        <div class="project-tags">
+          <span class="tag tag-accent">Python</span>
+          <span class="tag">DCF</span>
+          <span class="tag">SEC EDGAR</span>
+          <span class="tag">OLS Regression</span>
+          <span class="tag">WACC</span>
+        </div>
+        <div class="project-arrow">View Analysis &rarr;</div>
+      </a>
+
+      <!-- Ghost placeholders -->
       <div class="project-card project-card-ghost reveal">
         <div class="ghost-bar ghost-bar-sm"></div>
         <div class="ghost-bar ghost-bar-lg"></div>
@@ -75,18 +78,9 @@
         <div class="ghost-tags">
           <div class="ghost-tag"></div>
           <div class="ghost-tag"></div>
-          <div class="ghost-tag"></div>
         </div>
       </div>
-      <div class="project-card project-card-ghost reveal">
-        <div class="ghost-bar ghost-bar-sm"></div>
-        <div class="ghost-bar ghost-bar-lg"></div>
-        <div class="ghost-bar ghost-bar-md"></div>
-        <div class="ghost-tags">
-          <div class="ghost-tag"></div>
-          <div class="ghost-tag"></div>
-        </div>
-      </div>
+
     </div>
 
   </main>
