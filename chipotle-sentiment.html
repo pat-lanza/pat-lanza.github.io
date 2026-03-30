@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chipotle Earnings Sentiment &mdash; Pat Lanza</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet" />
+  <style>
+    /* ── Sentiment page styles ── */
+    .sent-main { padding: 3rem 0 6rem; }
+
+    /* Trajectory banner */
+    .traj-banner {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 0;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); overflow: hidden;
+      margin-bottom: 3rem;
+    }
+    .traj-quarter {
+      padding: 1.5rem;
+      border-right: 1px solid var(--border);
+      position: relative;
+      transition: background var(--transition);
+    }
+    .traj-quarter:last-child { border-right: none; }
+    .traj-quarter:hover { background: var(--surface2); }
+    .traj-quarter.is-test {
+      background: rgba(108,143,255,0.04);
+    }
+    .traj-quarter.is-test::before {
+      content: 'TEST';
+      position: absolute; top: 0.75rem; right: 0.75rem;
+      font-size: 0.58rem; font-weight: 800; letter-spacing: 0.12em;
+      color: var(--accent); background: var(--accent-glow);
+      border: 1px solid rgba(108,143,255,0.25);
+      padding: 0.15rem 0.45rem; border-radius: 100px;
+    }
+    .traj-label { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text3); margin-bottom: 0.5rem; }
+    .traj-score {
+      font-size: 2.4rem; font-weight: 700; letter-spacing: -0.04em; line-height: 1;
+    }
+    .traj-score-positive { color: var(--work); }
+    .traj-bar-wrap { margin-top: 0.75rem; height: 4px; background: var(--border2); border-radius: 2px; }
+    .traj-bar { height: 100%; border-radius: 2px; background: var(--work); transition: width 1s ease; }
+    .traj-detail {
+      margin-top: 0.6rem; display: flex; gap: 0.75rem;
+      font-size: 0.72rem; color: var(--text3);
+    }
+    .traj-detail span { display: flex; flex-direction: column; gap: 0.1rem; }
+    .traj-detail strong { font-size: 0.85rem; color: var(--text2); }
+    .traj-arrow {
+      position: absolute; right: -14px; top: 50%;
+      transform: translateY(-50%);
+      font-size: 0.8rem; color: var(--text3); z-index: 2;
+    }
+
+    /* Section wrapper */
+    .sent-section { margin-bottom: 3.5rem; }
+    .sent-section-title {
+      font-size: 1.05rem; font-weight: 700; letter-spacing: -0.01em;
+      margin-bottom: 1.25rem; padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 0.75rem;
+    }
+    .sent-section-title .sec-tag {
+      font-size: 0.65rem; font-weight: 700; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--accent);
+      background: var(--accent-glow); border: 1px solid rgba(108,143,255,0.2);
+      padding: 0.15rem 0.55rem; border-radius: 100px;
+    }
+
+    /* Q4 spotlight */
+    .q4-spotlight-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .q4-stat-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1.25rem;
+    }
+    .q4-stat-label { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); margin-bottom: 0.4rem; }
+    .q4-stat-val { font-size: 1.8rem; font-weight: 700; letter-spacing: -0.03em; line-height: 1; }
+    .q4-stat-sub { font-size: 0.75rem; color: var(--text2); margin-top: 0.35rem; }
+    .val-positive { color: var(--work); }
+    .val-negative { color: #f87171; }
+    .val-neutral  { color: var(--accent); }
+
+    /* Chart display */
+    .chart-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); overflow: hidden;
+    }
+    .chart-card-header {
+      padding: 1rem 1.25rem; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .chart-card-title { font-size: 0.85rem; font-weight: 600; }
+    .chart-card-sub { font-size: 0.72rem; color: var(--text3); }
+    .chart-card img { width: 100%; display: block; background: var(--surface2); }
+    .chart-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.25rem; }
+    .chart-grid-1 { display: grid; grid-template-columns: 1fr; gap: 1.25rem; margin-bottom: 1.25rem; }
+
+    /* Topic table */
+    .topic-table-wrap { overflow-x: auto; border-radius: var(--radius-lg); border: 1px solid var(--border); margin-bottom: 1.25rem; }
+    table.topic-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    .topic-table thead th {
+      background: var(--surface2); padding: 0.7rem 1rem;
+      text-align: center; font-weight: 600; color: var(--text2);
+      border-bottom: 1px solid var(--border); white-space: nowrap;
+    }
+    .topic-table thead th:first-child { text-align: left; }
+    .topic-table tbody tr { border-bottom: 1px solid var(--border); transition: background var(--transition); }
+    .topic-table tbody tr:last-child { border-bottom: none; }
+    .topic-table tbody tr:hover { background: var(--surface2); }
+    .topic-table td { padding: 0.65rem 1rem; text-align: center; }
+    .topic-table td:first-child { text-align: left; color: var(--text); font-weight: 500; }
+    .topic-val { font-weight: 600; }
+    .tv-high  { color: var(--work); }
+    .tv-mid   { color: #fcd34d; }
+    .tv-low   { color: var(--text2); }
+    .tv-neg   { color: #f87171; }
+    .drift-up   { color: var(--work); font-weight: 700; }
+    .drift-down { color: #f87171; font-weight: 700; }
+    .drift-flat { color: var(--text3); }
+
+    /* Model comparison table */
+    .model-comp-wrap { overflow-x: auto; border-radius: var(--radius-lg); border: 1px solid var(--border); }
+    table.model-comp { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    .model-comp thead th {
+      background: var(--surface2); padding: 0.7rem 1rem;
+      font-weight: 600; color: var(--text2);
+      border-bottom: 1px solid var(--border); white-space: nowrap;
+    }
+    .model-comp thead th:first-child { text-align: left; }
+    .model-comp thead th:nth-child(2), .model-comp thead th:nth-child(3) { text-align: center; }
+    .model-comp thead th:last-child { text-align: center; }
+    .model-comp tbody tr { border-bottom: 1px solid var(--border); transition: background var(--transition); }
+    .model-comp tbody tr:last-child { border-bottom: none; }
+    .model-comp tbody tr:hover { background: var(--surface2); }
+    .model-comp td { padding: 0.65rem 1rem; text-align: center; }
+    .model-comp td:first-child { text-align: left; font-weight: 500; color: var(--text); }
+    .signal-similar  { color: var(--text3); font-size: 0.75rem; }
+    .signal-pos { color: var(--work); font-weight: 700; font-size: 0.75rem; }
+    .signal-neg { color: #f87171; font-weight: 700; font-size: 0.75rem; }
+
+    /* Drift section */
+    .drift-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .drift-item {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1.1rem 1.25rem;
+      display: flex; align-items: center; gap: 1rem;
+    }
+    .drift-score-col { display: flex; flex-direction: column; align-items: center; gap: 0.2rem; min-width: 44px; }
+    .drift-score { font-size: 1.3rem; font-weight: 700; line-height: 1; }
+    .drift-arrow-col { font-size: 0.9rem; color: var(--text3); }
+    .drift-body { flex: 1; }
+    .drift-body strong { font-size: 0.88rem; display: block; margin-bottom: 0.2rem; }
+    .drift-body p { font-size: 0.76rem; color: var(--text2); line-height: 1.5; }
+
+    /* Prepared vs Q&A */
+    .section-comp-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+    .section-comp-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1.25rem;
+    }
+    .section-comp-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem; }
+    .section-comp-name { font-size: 0.8rem; font-weight: 700; }
+    .section-comp-q { font-size: 0.68rem; color: var(--text3); }
+    .section-comp-rows { display: flex; flex-direction: column; gap: 0.4rem; }
+    .section-comp-row { display: flex; justify-content: space-between; font-size: 0.78rem; }
+    .section-comp-row span:first-child { color: var(--text2); }
+    .section-comp-row span:last-child { font-weight: 600; }
+
+    /* Takeaways */
+    .takeaways-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .takeaway-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1.25rem 1.5rem;
+      display: flex; gap: 1rem; align-items: flex-start;
+      transition: border-color var(--transition), transform var(--transition);
+    }
+    .takeaway-card:hover { border-color: var(--border2); transform: translateY(-2px); }
+    .takeaway-num {
+      font-size: 1.5rem; font-weight: 700; line-height: 1;
+      background: linear-gradient(135deg, var(--accent), var(--research));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text; flex-shrink: 0; padding-top: 0.1rem;
+    }
+    .takeaway-body h4 { font-size: 0.9rem; font-weight: 700; margin-bottom: 0.35rem; }
+    .takeaway-body p { font-size: 0.8rem; color: var(--text2); line-height: 1.6; }
+
+    /* Methodology */
+    .method-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    .method-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1.25rem;
+    }
+    .method-label { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.5rem; }
+    .method-body { font-size: 0.8rem; color: var(--text2); line-height: 1.65; }
+
+    .disclaimer {
+      margin-top: 3rem; padding: 1rem 1.25rem;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); font-size: 0.72rem; color: var(--text3); line-height: 1.6;
+    }
+
+    @media (max-width: 900px) {
+      .traj-banner { grid-template-columns: 1fr 1fr; }
+      .q4-spotlight-grid { grid-template-columns: 1fr 1fr; }
+      .chart-grid-2 { grid-template-columns: 1fr; }
+      .drift-grid { grid-template-columns: 1fr; }
+      .takeaways-grid { grid-template-columns: 1fr; }
+      .method-grid { grid-template-columns: 1fr 1fr; }
+      .section-comp-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 600px) {
+      .traj-banner { grid-template-columns: 1fr; }
+      .q4-spotlight-grid { grid-template-columns: 1fr; }
+      .method-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body class="inner-page">
+
+  <!-- Nav -->
+  <nav class="nav">
+    <a href="index.html" class="nav-logo">PL</a>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="experience.html">Experience</a></li>
+      <li><a href="projects.html" class="active">Projects</a></li>
+      <li><a href="photos.html">Photos</a></li>
+    </ul>
+    <button class="nav-menu-btn" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+
+  <!-- Page Hero -->
+  <header class="page-hero">
+    <div class="container">
+      <div class="section-label">Projects &rsaquo; NLP / Earnings Analysis</div>
+      <h1 class="page-hero-title">Chipotle Earnings Call<br>Sentiment Analysis</h1>
+      <p class="page-hero-sub">A finance-domain BERT model trained on Q1&ndash;Q3 2025 Chipotle earnings call transcripts and tested on Q4, producing sentence-level, section-level, topic-level, and speaker-role sentiment signals for valuation-relevant interpretation.</p>
+      <div style="display:flex; gap:0.75rem; margin-top:1.25rem; flex-wrap:wrap;">
+        <span class="tag tag-accent">Python</span>
+        <span class="tag">ProsusAI/FinBERT</span>
+        <span class="tag">Fine-Tuning</span>
+        <span class="tag">NLP</span>
+        <span class="tag">Earnings Calls</span>
+        <span class="tag">Topic Modeling</span>
+        <span class="tag">Valuation Signals</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="container sent-main">
+
+    <!-- Quarterly trajectory banner -->
+    <div class="sent-section">
+      <div class="sent-section-title">
+        Overall Sentiment Trajectory
+        <span class="sec-tag">Q1 &ndash; Q4 2025</span>
+      </div>
+      <div class="traj-banner reveal">
+        <div class="traj-quarter">
+          <div class="traj-label">Q1 &mdash; Train</div>
+          <div class="traj-score traj-score-positive">0.231</div>
+          <div class="traj-bar-wrap"><div class="traj-bar" style="width:57.8%;"></div></div>
+          <div class="traj-detail">
+            <span><strong>33.8%</strong>Positive</span>
+            <span><strong>9.4%</strong>Negative</span>
+            <span><strong>459</strong>Sentences</span>
+          </div>
+        </div>
+        <div class="traj-quarter">
+          <div class="traj-label">Q2 &mdash; Train</div>
+          <div class="traj-score traj-score-positive">0.283</div>
+          <div class="traj-bar-wrap"><div class="traj-bar" style="width:70.8%;"></div></div>
+          <div class="traj-detail">
+            <span><strong>35.9%</strong>Positive</span>
+            <span><strong>7.0%</strong>Negative</span>
+            <span><strong>474</strong>Sentences</span>
+          </div>
+        </div>
+        <div class="traj-quarter">
+          <div class="traj-label">Q3 &mdash; Train</div>
+          <div class="traj-score traj-score-positive">0.236</div>
+          <div class="traj-bar-wrap"><div class="traj-bar" style="width:59.0%;"></div></div>
+          <div class="traj-detail">
+            <span><strong>33.0%</strong>Positive</span>
+            <span><strong>10.4%</strong>Negative</span>
+            <span><strong>461</strong>Sentences</span>
+          </div>
+        </div>
+        <div class="traj-quarter is-test">
+          <div class="traj-label">Q4 &mdash; Test</div>
+          <div class="traj-score traj-score-positive">0.284</div>
+          <div class="traj-bar-wrap"><div class="traj-bar" style="width:71.0%;"></div></div>
+          <div class="traj-detail">
+            <span><strong>34.3%</strong>Positive</span>
+            <span><strong>6.4%</strong>Negative</span>
+            <span><strong>472</strong>Sentences</span>
+          </div>
+        </div>
+      </div>
+      <div class="chart-grid-1">
+        <div class="chart-card reveal">
+          <div class="chart-card-header">
+            <div>
+              <div class="chart-card-title">Firm-Level Sentiment &mdash; Base FinBERT</div>
+              <div class="chart-card-sub">Quarterly positive, negative, and neutral ratios across Q1&ndash;Q4 2025</div>
+            </div>
+          </div>
+          <img src="assets/sentiment/06_sentiment_trajectory.png" alt="Sentiment trajectory chart" loading="lazy" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Q4 Spotlight -->
+    <div class="sent-section">
+      <div class="sent-section-title">
+        Q4 2025 &mdash; Test Quarter Spotlight
+        <span class="sec-tag">Held-Out Data</span>
+      </div>
+      <div class="q4-spotlight-grid reveal">
+        <div class="q4-stat-card">
+          <div class="q4-stat-label">Net Sentiment (Q4)</div>
+          <div class="q4-stat-val val-positive">0.2838</div>
+          <div class="q4-stat-sub">Highest of all four quarters. Negative ratio at a 4-quarter low of 6.4%.</div>
+        </div>
+        <div class="q4-stat-card">
+          <div class="q4-stat-label">Prepared Remarks</div>
+          <div class="q4-stat-val val-negative">&minus;0.019</div>
+          <div class="q4-stat-sub">Turned net negative in Q4 for the first time across all quarters analyzed. 9 sentences, 11.1% negative ratio.</div>
+        </div>
+        <div class="q4-stat-card">
+          <div class="q4-stat-label">Q&amp;A Session</div>
+          <div class="q4-stat-val val-positive">0.2897</div>
+          <div class="q4-stat-sub">Highest Q&amp;A sentiment across all quarters. Management language in dialogue was notably constructive.</div>
+        </div>
+        <div class="q4-stat-card">
+          <div class="q4-stat-label">Management Sentiment</div>
+          <div class="q4-stat-val val-positive">0.2894</div>
+          <div class="q4-stat-sub">Management net sentiment at a 4-quarter high. Consistent with strong Q&amp;A tone.</div>
+        </div>
+        <div class="q4-stat-card">
+          <div class="q4-stat-label">Avg Net Sentiment (Full Year)</div>
+          <div class="q4-stat-val val-neutral">0.2585</div>
+          <div class="q4-stat-sub">Average across all 1,866 sentences classified across Q1&ndash;Q4. Consistently positive tone throughout the year.</div>
+        </div>
+        <div class="q4-stat-card">
+          <div class="q4-stat-label">Sentences Analyzed</div>
+          <div class="q4-stat-val val-neutral">1,866</div>
+          <div class="q4-stat-sub">459 Q1 + 474 Q2 + 461 Q3 + 472 Q4. Model fine-tuned on Q1&ndash;Q3 (1,394 sentences), tested on Q4.</div>
+        </div>
+      </div>
+      <div class="chart-grid-2 reveal">
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div>
+              <div class="chart-card-title">Firm-Level &mdash; Base FinBERT</div>
+              <div class="chart-card-sub">Quarterly sentiment distribution</div>
+            </div>
+          </div>
+          <img src="assets/sentiment/01_firm_level_Base_FinBERT.png" alt="Firm level base FinBERT" loading="lazy" />
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div>
+              <div class="chart-card-title">Firm-Level &mdash; Fine-Tuned (Q1&ndash;Q3)</div>
+              <div class="chart-card-sub">Quarterly sentiment distribution, adapted model</div>
+            </div>
+          </div>
+          <img src="assets/sentiment/01_firm_level_Fine-Tuned_Q1-Q3.png" alt="Firm level fine-tuned" loading="lazy" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Topic-Level Analysis -->
+    <div class="sent-section">
+      <div class="sent-section-title">
+        Topic-Level Sentiment &mdash; All Quarters
+        <span class="sec-tag">10 Topics</span>
+      </div>
+      <div class="topic-table-wrap reveal">
+        <table class="topic-table">
+          <thead>
+            <tr>
+              <th>Topic</th>
+              <th>Q1</th>
+              <th>Q2</th>
+              <th>Q3</th>
+              <th>Q4</th>
+              <th>Q3 &rarr; Q4 Drift</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>International</td>
+              <td class="topic-val tv-high">0.680</td>
+              <td class="topic-val tv-high">0.647</td>
+              <td class="topic-val tv-high">0.783</td>
+              <td class="topic-val tv-high">0.553</td>
+              <td class="drift-down">&minus;0.230</td>
+            </tr>
+            <tr>
+              <td>Digital &amp; Technology</td>
+              <td class="topic-val tv-mid">0.256</td>
+              <td class="topic-val tv-mid">0.391</td>
+              <td class="topic-val tv-high">0.440</td>
+              <td class="topic-val tv-high">0.544</td>
+              <td class="drift-up">+0.104</td>
+            </tr>
+            <tr>
+              <td>Consumer &amp; Macro</td>
+              <td class="topic-val tv-low">0.195</td>
+              <td class="topic-val tv-low">0.205</td>
+              <td class="topic-val tv-mid">0.294</td>
+              <td class="topic-val tv-high">0.495</td>
+              <td class="drift-up">+0.202</td>
+            </tr>
+            <tr>
+              <td>Menu Pricing</td>
+              <td class="topic-val tv-high">0.412</td>
+              <td class="topic-val tv-high">0.491</td>
+              <td class="topic-val tv-high">0.464</td>
+              <td class="topic-val tv-mid">0.375</td>
+              <td class="drift-down">&minus;0.089</td>
+            </tr>
+            <tr>
+              <td>New Restaurant Growth</td>
+              <td class="topic-val tv-mid">0.366</td>
+              <td class="topic-val tv-high">0.482</td>
+              <td class="topic-val tv-high">0.425</td>
+              <td class="topic-val tv-high">0.426</td>
+              <td class="drift-flat">+0.001</td>
+            </tr>
+            <tr>
+              <td>Guidance &amp; Outlook</td>
+              <td class="topic-val tv-mid">0.394</td>
+              <td class="topic-val tv-mid">0.376</td>
+              <td class="topic-val tv-low">0.188</td>
+              <td class="topic-val tv-mid">0.329</td>
+              <td class="drift-up">+0.140</td>
+            </tr>
+            <tr>
+              <td>Revenue &amp; Sales</td>
+              <td class="topic-val tv-mid">0.286</td>
+              <td class="topic-val tv-high">0.415</td>
+              <td class="topic-val tv-mid">0.233</td>
+              <td class="topic-val tv-mid">0.394</td>
+              <td class="drift-up">+0.161</td>
+            </tr>
+            <tr>
+              <td>Food Costs</td>
+              <td class="topic-val tv-high">0.471</td>
+              <td class="topic-val tv-high">0.483</td>
+              <td class="topic-val tv-low">0.213</td>
+              <td class="topic-val tv-low">0.240</td>
+              <td class="drift-flat">+0.026</td>
+            </tr>
+            <tr>
+              <td>Restaurant Margins</td>
+              <td class="topic-val tv-low">0.187</td>
+              <td class="topic-val tv-high">0.421</td>
+              <td class="topic-val tv-high">0.436</td>
+              <td class="topic-val tv-low">0.223</td>
+              <td class="drift-down">&minus;0.213</td>
+            </tr>
+            <tr>
+              <td>Labor &amp; Staffing</td>
+              <td class="topic-val tv-mid">0.262</td>
+              <td class="topic-val tv-high">0.472</td>
+              <td class="topic-val tv-low">0.195</td>
+              <td class="topic-val tv-neg">&minus;0.075</td>
+              <td class="drift-down">&minus;0.270</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="chart-grid-2 reveal">
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div>
+              <div class="chart-card-title">Topic Heatmap &mdash; Base FinBERT</div>
+              <div class="chart-card-sub">Net sentiment by topic and quarter</div>
+            </div>
+          </div>
+          <img src="assets/sentiment/03_topic_heatmap_Base_FinBERT.png" alt="Topic heatmap base" loading="lazy" />
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div>
+              <div class="chart-card-title">Topic Heatmap &mdash; Fine-Tuned</div>
+              <div class="chart-card-sub">Net sentiment by topic and quarter, adapted model</div>
+            </div>
+          </div>
+          <img src="assets/sentiment/03_topic_heatmap_Fine-Tuned_Q1-Q3.png" alt="Topic heatmap fine-tuned" loading="lazy" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Q3 to Q4 Drift -->
+    <div class="sent-section">
+      <div class="sent-section-title">
+        Q3 &rarr; Q4 Sentiment Drift
+        <span class="sec-tag">Valuation Signal</span>
+      </div>
+      <p style="font-size:0.85rem; color:var(--text2); margin-bottom:1.25rem; line-height:1.7;">Quarter-over-quarter sentiment drift by topic is the most valuation-relevant output of this model. Sustained declines in operationally critical topics &mdash; even while overall sentiment remains positive &mdash; can serve as early-warning signals ahead of earnings misses or margin compression.</p>
+      <div class="drift-grid reveal">
+        <div class="drift-item" style="border-color: rgba(52,211,153,0.2);">
+          <div class="drift-score-col">
+            <div class="drift-score" style="color:var(--work);">+0.202</div>
+          </div>
+          <div class="drift-body">
+            <strong>Consumer &amp; Macro &mdash; Strongest Improvement</strong>
+            <p>Management language around the consumer and broader macro environment turned notably more optimistic in Q4 (0.294 &rarr; 0.495). Suggests reduced concern about demand headwinds and discretionary spending softness entering 2026.</p>
+          </div>
+        </div>
+        <div class="drift-item" style="border-color: rgba(248,113,113,0.2);">
+          <div class="drift-score-col">
+            <div class="drift-score" style="color:#f87171;">&minus;0.270</div>
+          </div>
+          <div class="drift-body">
+            <strong>Labor &amp; Staffing &mdash; Biggest Decline, Turned Negative</strong>
+            <p>The only topic to turn net negative in Q4 (&minus;0.075). Labor sentiment deteriorated sharply from Q3 (0.195). This is a direct margin risk signal &mdash; labor is Chipotle's largest cost item and rising negative language here precedes cost pressure.</p>
+          </div>
+        </div>
+        <div class="drift-item" style="border-color: rgba(52,211,153,0.2);">
+          <div class="drift-score-col">
+            <div class="drift-score" style="color:var(--work);">+0.161</div>
+          </div>
+          <div class="drift-body">
+            <strong>Revenue &amp; Sales &mdash; Recovered from Q3 Dip</strong>
+            <p>Revenue and sales sentiment bounced strongly after a Q3 dip (0.233 &rarr; 0.394), nearly matching Q2 levels. Management language around top-line performance was constructive, though the Q3 dip itself warrants monitoring for consistency.</p>
+          </div>
+        </div>
+        <div class="drift-item" style="border-color: rgba(248,113,113,0.2);">
+          <div class="drift-score-col">
+            <div class="drift-score" style="color:#f87171;">&minus;0.213</div>
+          </div>
+          <div class="drift-body">
+            <strong>Restaurant Margins &mdash; Sharp Decline from Q3 Peak</strong>
+            <p>Margin sentiment fell from a Q3 high of 0.436 to 0.223 in Q4 &mdash; a reversal of the Q2&ndash;Q3 expansion narrative. This aligns with the DCF model's observation that EBITDA margin growth is flattening, and may signal cost pressures beginning to show in management language.</p>
+          </div>
+        </div>
+        <div class="drift-item" style="border-color: rgba(52,211,153,0.2);">
+          <div class="drift-score-col">
+            <div class="drift-score" style="color:var(--work);">+0.140</div>
+          </div>
+          <div class="drift-body">
+            <strong>Guidance &amp; Outlook &mdash; Recovery from Q3 Low</strong>
+            <p>Guidance sentiment rebounded from its Q3 trough (0.188) to 0.329 in Q4. Management forward-looking language became more confident, suggesting greater conviction around near-term unit economics and same-store sales trajectory.</p>
+          </div>
+        </div>
+        <div class="drift-item" style="border-color: rgba(248,113,113,0.2);">
+          <div class="drift-score-col">
+            <div class="drift-score" style="color:#f87171;">&minus;0.230</div>
+          </div>
+          <div class="drift-body">
+            <strong>International &mdash; Pulled Back from Q3 Peak</strong>
+            <p>International sentiment dropped from its highest reading (0.783 in Q3) to 0.553 in Q4. While still elevated relative to other topics, the decline suggests management tempered expectations around international expansion pace or unit performance.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section-Level: Prepared Remarks vs Q&A -->
+    <div class="sent-section">
+      <div class="sent-section-title">
+        Section-Level &mdash; Prepared Remarks vs. Q&amp;A
+      </div>
+      <p style="font-size:0.85rem; color:var(--text2); margin-bottom:1.25rem; line-height:1.7;">The divergence between prepared remarks and Q&amp;A is a structurally important signal. Prepared remarks are scripted and curated; Q&amp;A reflects real-time management responses under analyst pressure. A negative prepared remarks score alongside a high Q&amp;A score &mdash; as seen in Q4 &mdash; suggests management led with caution before responding constructively to analyst questions.</p>
+      <div class="section-comp-grid reveal">
+        <div class="section-comp-card">
+          <div class="section-comp-header">
+            <div class="section-comp-name">Prepared Remarks</div>
+          </div>
+          <div class="section-comp-rows">
+            <div class="section-comp-row"><span>Q1</span><span style="color:var(--work);">0.039</span></div>
+            <div class="section-comp-row"><span>Q2</span><span style="color:var(--work);">0.068</span></div>
+            <div class="section-comp-row"><span>Q3</span><span style="color:var(--work);">0.059</span></div>
+            <div class="section-comp-row"><span>Q4 (Test)</span><span style="color:#f87171;">&minus;0.019 &larr; turned negative</span></div>
+          </div>
+        </div>
+        <div class="section-comp-card">
+          <div class="section-comp-header">
+            <div class="section-comp-name">Q&amp;A Session</div>
+          </div>
+          <div class="section-comp-rows">
+            <div class="section-comp-row"><span>Q1</span><span style="color:var(--work);">0.233</span></div>
+            <div class="section-comp-row"><span>Q2</span><span style="color:var(--work);">0.285</span></div>
+            <div class="section-comp-row"><span>Q3</span><span style="color:var(--work);">0.237</span></div>
+            <div class="section-comp-row"><span>Q4 (Test)</span><span style="color:var(--work);">0.290 &larr; 4-quarter high</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="chart-grid-2 reveal" style="margin-top:1.25rem;">
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div>
+              <div class="chart-card-title">Section-Level &mdash; Base FinBERT</div>
+              <div class="chart-card-sub">Prepared remarks vs. Q&amp;A, all quarters</div>
+            </div>
+          </div>
+          <img src="assets/sentiment/02_section_level_Base_FinBERT.png" alt="Section level base" loading="lazy" />
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div>
+              <div class="chart-card-title">Role Sentiment &mdash; Base FinBERT</div>
+              <div class="chart-card-sub">Management vs. operator sentiment by quarter</div>
+            </div>
+          </div>
+          <img src="assets/sentiment/05_role_sentiment_Base_FinBERT.png" alt="Role sentiment" loading="lazy" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Model Comparison: Base vs Fine-Tuned -->
+    <div class="sent-section">
+      <div class="sent-section-title">
+        Q4 Model Comparison &mdash; Base FinBERT vs. Fine-Tuned
+        <span class="sec-tag">Domain Adaptation</span>
+      </div>
+      <p style="font-size:0.85rem; color:var(--text2); margin-bottom:1.25rem; line-height:1.7;">The fine-tuned model was adapted on Q1&ndash;Q3 2025 Chipotle earnings data to capture company-specific language patterns before being evaluated on the held-out Q4 transcript. Deltas reveal where domain adaptation shifts interpretation relative to the general-purpose FinBERT baseline.</p>
+      <div class="model-comp-wrap reveal">
+        <table class="model-comp">
+          <thead>
+            <tr>
+              <th>Topic</th>
+              <th>Base FinBERT</th>
+              <th>Fine-Tuned</th>
+              <th>Delta</th>
+              <th>Signal</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>New Restaurant Growth</td>
+              <td>0.4258</td>
+              <td>0.5555</td>
+              <td style="color:var(--work); font-weight:700;">+0.130</td>
+              <td class="signal-pos">More positive after adaptation</td>
+            </tr>
+            <tr>
+              <td>International</td>
+              <td>0.5529</td>
+              <td>0.6093</td>
+              <td style="color:var(--work); font-weight:700;">+0.056</td>
+              <td class="signal-pos">More positive after adaptation</td>
+            </tr>
+            <tr>
+              <td>Labor &amp; Staffing</td>
+              <td>&minus;0.0753</td>
+              <td>&minus;0.0370</td>
+              <td style="color:var(--work); font-weight:700;">+0.038</td>
+              <td class="signal-pos">Less negative after adaptation</td>
+            </tr>
+            <tr>
+              <td>Restaurant Margins</td>
+              <td>0.2234</td>
+              <td>0.2453</td>
+              <td style="color:var(--work); font-weight:700;">+0.022</td>
+              <td class="signal-pos">Slightly more positive</td>
+            </tr>
+            <tr>
+              <td>Consumer &amp; Macro</td>
+              <td>0.4953</td>
+              <td>0.5006</td>
+              <td style="color:var(--text3);">+0.005</td>
+              <td class="signal-similar">Similar</td>
+            </tr>
+            <tr>
+              <td>Revenue &amp; Sales</td>
+              <td>0.3942</td>
+              <td>0.4045</td>
+              <td style="color:var(--text3);">+0.010</td>
+              <td class="signal-similar">Similar</td>
+            </tr>
+            <tr>
+              <td>Digital &amp; Technology</td>
+              <td>0.5439</td>
+              <td>0.5286</td>
+              <td style="color:var(--text3);">&minus;0.015</td>
+              <td class="signal-similar">Similar</td>
+            </tr>
+            <tr>
+              <td>Menu Pricing</td>
+              <td>0.3749</td>
+              <td>0.3662</td>
+              <td style="color:var(--text3);">&minus;0.009</td>
+              <td class="signal-similar">Similar</td>
+            </tr>
+            <tr>
+              <td>Guidance &amp; Outlook</td>
+              <td>0.3287</td>
+              <td>0.3169</td>
+              <td style="color:var(--text3);">&minus;0.012</td>
+              <td class="signal-similar">Similar</td>
+            </tr>
+            <tr>
+              <td>Food Costs</td>
+              <td>0.2395</td>
+              <td>0.2022</td>
+              <td style="color:#f87171; font-weight:700;">&minus;0.037</td>
+              <td class="signal-neg">More negative after adaptation</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="chart-grid-1 reveal">
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div>
+              <div class="chart-card-title">Q4 Model Comparison &mdash; Base vs. Fine-Tuned</div>
+              <div class="chart-card-sub">Side-by-side Q4 topic scores for each model variant</div>
+            </div>
+          </div>
+          <img src="assets/sentiment/04_q4_model_comparison.png" alt="Q4 model comparison" loading="lazy" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Key Takeaways -->
+    <div class="sent-section">
+      <div class="sent-section-title">Key Takeaways for Valuation</div>
+      <div class="takeaways-grid reveal">
+        <div class="takeaway-card">
+          <div class="takeaway-num">01</div>
+          <div class="takeaway-body">
+            <h4>Overall Sentiment Is Improving &mdash; But Operationally, Cracks Are Forming</h4>
+            <p>Q4 posted the highest firm-level net sentiment of the year (0.284), and the lowest negative ratio (6.4%). On the surface this looks positive. But beneath the headline, three operationally critical topics &mdash; Labor, Restaurant Margins, and International &mdash; all declined quarter-over-quarter, pointing to emerging cost pressures not yet fully priced in.</p>
+          </div>
+        </div>
+        <div class="takeaway-card">
+          <div class="takeaway-num">02</div>
+          <div class="takeaway-body">
+            <h4>Labor Sentiment Turning Negative Is the Single Most Important Signal</h4>
+            <p>Labor &amp; Staffing is the only topic to post a negative net score in any quarter (&minus;0.075 in Q4). Labor is Chipotle's largest cost line. When management language around staffing turns net negative, it historically precedes restaurant-level margin compression. This is the clearest valuation-negative signal in the full dataset.</p>
+          </div>
+        </div>
+        <div class="takeaway-card">
+          <div class="takeaway-num">03</div>
+          <div class="takeaway-body">
+            <h4>Prepared Remarks Turned Negative While Q&amp;A Stayed Positive</h4>
+            <p>The Q4 divergence between scripted prepared remarks (&minus;0.019) and the Q&amp;A session (+0.290) is structurally notable. Management scripted in caution but responded constructively under direct analyst questioning. This asymmetry suggests the company was managing expectations downward while remaining bullish on fundamentals in real-time dialogue.</p>
+          </div>
+        </div>
+        <div class="takeaway-card">
+          <div class="takeaway-num">04</div>
+          <div class="takeaway-body">
+            <h4>Consumer &amp; Macro Improvement Provides a Counterbalancing Tailwind</h4>
+            <p>The largest positive drift in Q4 was Consumer &amp; Macro (+0.202). If management's more optimistic language on the consumer translates to actual same-store sales strength in 2026, it could offset some of the labor cost headwind. The balance between these two signals &mdash; consumer improvement vs. labor deterioration &mdash; is the key tension for the forward outlook.</p>
+          </div>
+        </div>
+        <div class="takeaway-card">
+          <div class="takeaway-num">05</div>
+          <div class="takeaway-body">
+            <h4>Fine-Tuning Most Changed New Restaurant Growth and International Scores</h4>
+            <p>After domain adaptation, New Restaurant Growth sentiment increased by +0.130 and International by +0.056 &mdash; the two largest deltas in the model comparison. This suggests the general FinBERT baseline under-reads optimism in Chipotle's unit expansion language, and that fine-tuning on company-specific earnings text materially improves sensitivity to growth narrative signals.</p>
+          </div>
+        </div>
+        <div class="takeaway-card">
+          <div class="takeaway-num">06</div>
+          <div class="takeaway-body">
+            <h4>Cross-Signal Read: Sentiment Analysis Supports the DCF Overvaluation Finding</h4>
+            <p>The sentiment model's negative drift in Labor, Margins, and International &mdash; paired with the DCF model's finding that all scenarios imply 27&ndash;55% downside at $31.25 &mdash; tells a consistent story. The business remains operationally solid but is showing early signs of cost pressure, and the market price requires a growth trajectory that neither the fundamental model nor the management language fully supports.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Methodology -->
+    <div class="sent-section">
+      <div class="sent-section-title">Methodology</div>
+      <div class="method-grid reveal">
+        <div class="method-card">
+          <div class="method-label">Model Architecture</div>
+          <div class="method-body">Base model: ProsusAI/FinBERT, a BERT variant pre-trained on financial text. Fine-tuned on Chipotle Q1&ndash;Q3 2025 earnings call transcripts using sentence-level positive / negative / neutral labels. Tested on held-out Q4 2025 data.</div>
+        </div>
+        <div class="method-card">
+          <div class="method-label">Data &amp; Segmentation</div>
+          <div class="method-body">1,866 sentences extracted and segmented from four quarterly earnings call transcripts. Each sentence tagged by quarter, section (prepared remarks vs. Q&amp;A), speaker role (management vs. operator), and topic via keyword-based classifier across 10 valuation-relevant categories.</div>
+        </div>
+        <div class="method-card">
+          <div class="method-label">Topic Classification</div>
+          <div class="method-body">10 topics: Revenue &amp; Sales, Restaurant Margins, Food Costs, Labor &amp; Staffing, New Restaurant Growth, Digital &amp; Technology, Menu Pricing, Guidance &amp; Outlook, Consumer &amp; Macro, International. Topics assigned via domain-specific keyword matching before sentiment scoring.</div>
+        </div>
+        <div class="method-card">
+          <div class="method-label">Sentiment Scoring</div>
+          <div class="method-body">Each sentence produces three probability outputs (positive, negative, neutral) summing to 1.0. Net sentiment = positive probability &minus; negative probability. Aggregated to firm, section, topic, and speaker-role levels by arithmetic mean.</div>
+        </div>
+        <div class="method-card">
+          <div class="method-label">Fine-Tuning Approach</div>
+          <div class="method-body">FinBERT adapted on Q1&ndash;Q3 labeled data to capture Chipotle-specific language patterns, including restaurant-industry terminology and management communication style. Q4 serves as a strict holdout to evaluate whether domain adaptation improves out-of-sample prediction quality.</div>
+        </div>
+        <div class="method-card">
+          <div class="method-label">Valuation Integration</div>
+          <div class="method-body">Model outputs are designed for time-series and cross-firm analysis: net sentiment drift signals, topic-level declines in cost-related categories, and section divergence (scripted vs. Q&amp;A) provide leading indicators that complement quantitative DCF and fundamental models.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="disclaimer">
+      <strong>Disclaimer:</strong> This analysis is a personal academic project for portfolio purposes only. Sentiment scores reflect NLP model outputs on publicly available earnings call transcripts and do not constitute investment advice or a recommendation to buy, sell, or hold any security.
+    </div>
+
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-inner">
+      <span>&copy; 2026 Patrick Lanza</span>
+      <span>Model: ProsusAI/FinBERT &middot; Fine-tuned on Q1&ndash;Q3 2025</span>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
