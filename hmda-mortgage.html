@@ -343,17 +343,17 @@
 
       <div class="chart-grid-2" style="margin-top:1.5rem;">
         <div class="chart-card">
-          <img src="assets/hmda/01_null_heatmap.png" alt="Null value heatmap" />
+          <img src="assets/01_null_heatmap.png" alt="Null value heatmap" />
           <div class="chart-caption"><strong>Missing Values.</strong> Heatmap of null fractions per feature. Rate spread has the highest missing rate — it is only reported for higher-priced loans — which is itself a signal. All nulls imputed with median before modeling.</div>
         </div>
         <div class="chart-card">
-          <img src="assets/hmda/03_feature_distributions.png" alt="Feature distributions" />
+          <img src="assets/03_feature_distributions.png" alt="Feature distributions" />
           <div class="chart-caption"><strong>Feature Distributions.</strong> Raw vs. log-transformed distributions for continuous predictors. Loan amount and applicant income are heavily right-skewed in raw form; log transforms produce near-normal distributions that improve linear model stability.</div>
         </div>
       </div>
       <div class="chart-full">
         <div class="chart-card">
-          <img src="assets/hmda/02_correlation_matrix.png" alt="Feature correlation matrix" />
+          <img src="assets/02_correlation_matrix.png" alt="Feature correlation matrix" />
           <div class="chart-caption"><strong>Feature Correlation.</strong> Pearson correlation matrix across all 14 features. Log loan amount and log income are positively correlated (0.45), which is expected — higher-income applicants request larger loans. No pair exceeds 0.7, so multicollinearity is not a concern for logistic regression.</div>
         </div>
       </div>
@@ -462,15 +462,15 @@
       <div class="hmda-section-title"><span class="sec-num">3</span>Linear Regression &mdash; Baseline Diagnostics</div>
       <div class="chart-grid-3">
         <div class="chart-card">
-          <img src="assets/hmda/04_linear_regression_coefficients.png" alt="Linear regression coefficients" />
+          <img src="assets/04_linear_regression_coefficients.png" alt="Linear regression coefficients" />
           <div class="chart-caption"><strong>OLS Coefficients.</strong> Income and loan amount are the strongest predictors of origination in both directions. Rate spread has a large positive coefficient — higher-spread loans are predicted to be denied more often.</div>
         </div>
         <div class="chart-card">
-          <img src="assets/hmda/05_linear_regression_confusion_matrix.png" alt="Linear regression confusion matrix" />
+          <img src="assets/05_linear_regression_confusion_matrix.png" alt="Linear regression confusion matrix" />
           <div class="chart-caption"><strong>Confusion Matrix.</strong> Despite unbounded outputs, thresholding at 0.5 achieves ~60% accuracy. The model correctly identifies many denials but misclassifies a substantial share of originations as denials (high false positive rate).</div>
         </div>
         <div class="chart-card">
-          <img src="assets/hmda/06_linear_regression_residuals.png" alt="Linear regression residuals" />
+          <img src="assets/06_linear_regression_residuals.png" alt="Linear regression residuals" />
           <div class="chart-caption"><strong>Residuals.</strong> Predictions range well outside [0,1], confirming that linear regression is not a valid probability estimator for a binary outcome. This motivates the transition to logistic regression.</div>
         </div>
       </div>
@@ -481,21 +481,21 @@
       <div class="hmda-section-title"><span class="sec-num">4</span>Logistic Regression &mdash; Classification Performance</div>
       <div class="chart-grid-2">
         <div class="chart-card">
-          <img src="assets/hmda/07_logistic_regression_coefficients.png" alt="Logistic regression coefficients" />
+          <img src="assets/07_logistic_regression_coefficients.png" alt="Logistic regression coefficients" />
           <div class="chart-caption"><strong>Log-Odds &amp; Odds Ratios.</strong> Each unit increase in log income decreases the log-odds of denial by ~0.42. Rate spread has the highest positive log-odds coefficient — a one-unit increase raises denial probability substantially. Minority population percentage has a small but positive denial coefficient, an important fair lending signal worth further investigation.</div>
         </div>
         <div class="chart-card">
-          <img src="assets/hmda/08_logistic_regression_confusion_matrix.png" alt="Logistic regression confusion matrix" />
+          <img src="assets/08_logistic_regression_confusion_matrix.png" alt="Logistic regression confusion matrix" />
           <div class="chart-caption"><strong>Confusion Matrix.</strong> 59.7% recall on denied applications. The model correctly identifies the majority of high-risk loans. Precision (16.1%) is low due to class imbalance — denials are a minority even after SMOTE on training data, but testing on a realistically imbalanced test set reveals the challenge of separating the two classes without more predictive features.</div>
         </div>
       </div>
       <div class="chart-grid-2">
         <div class="chart-card">
-          <img src="assets/hmda/09_logistic_regression_roc.png" alt="ROC curve" />
+          <img src="assets/09_logistic_regression_roc.png" alt="ROC curve" />
           <div class="chart-caption"><strong>ROC Curve (AUC = 0.646).</strong> The model performs materially better than a random classifier (AUC = 0.5). The curve shows a reasonable true-positive rate across a range of operating thresholds, giving a risk desk flexibility to tune the cutoff based on cost asymmetry.</div>
         </div>
         <div class="chart-card">
-          <img src="assets/hmda/10_logistic_regression_pr_curve.png" alt="Precision-Recall curve" />
+          <img src="assets/10_logistic_regression_pr_curve.png" alt="Precision-Recall curve" />
           <div class="chart-caption"><strong>Precision-Recall Curve.</strong> PR curves are more informative than ROC when classes are imbalanced. The area under the PR curve reflects the challenge of achieving high precision at high recall — a meaningful tradeoff for any production lending system.</div>
         </div>
       </div>
@@ -506,15 +506,15 @@
       <div class="hmda-section-title"><span class="sec-num">5</span>DenialNet &mdash; Neural Network</div>
       <div class="chart-grid-3">
         <div class="chart-card">
-          <img src="assets/hmda/11_nn_training_curve.png" alt="Neural net training curve" />
+          <img src="assets/11_nn_training_curve.png" alt="Neural net training curve" />
           <div class="chart-caption"><strong>Training Curve.</strong> Train and validation loss converge smoothly across epochs. The small gap between train and val loss confirms that dropout regularization is controlling overfitting effectively.</div>
         </div>
         <div class="chart-card">
-          <img src="assets/hmda/12_nn_confusion_matrix.png" alt="Neural net confusion matrix" />
+          <img src="assets/12_nn_confusion_matrix.png" alt="Neural net confusion matrix" />
           <div class="chart-caption"><strong>Confusion Matrix.</strong> DenialNet achieves higher overall accuracy (70.3%) and precision (19.0%) compared to logistic regression. The tradeoff is lower denial recall (52.1%), meaning the network misses more high-risk loans than the logistic model.</div>
         </div>
         <div class="chart-card">
-          <img src="assets/hmda/13_roc_comparison.png" alt="ROC comparison" />
+          <img src="assets/13_roc_comparison.png" alt="ROC comparison" />
           <div class="chart-caption"><strong>ROC Comparison.</strong> DenialNet (AUC 0.673) outperforms logistic regression (AUC 0.646) across most operating thresholds. The gap is modest, suggesting that the 14 engineered features largely capture available signal — more data rather than model complexity would drive the next performance gain.</div>
         </div>
       </div>
@@ -525,7 +525,7 @@
       <div class="hmda-section-title"><span class="sec-num">6</span>Full Model Comparison</div>
       <div class="chart-full">
         <div class="chart-card">
-          <img src="assets/hmda/14_model_comparison_dashboard.png" alt="Model comparison dashboard" />
+          <img src="assets/14_model_comparison_dashboard.png" alt="Model comparison dashboard" />
           <div class="chart-caption"><strong>2&times;3 Comparison Dashboard.</strong> Side-by-side visualization of all three models across confusion matrices, ROC curves, and key metrics. DenialNet leads on accuracy and AUC; logistic regression matches on recall. The dashboard illustrates the precision-recall tradeoff that governs model selection in practice.</div>
         </div>
       </div>
@@ -536,11 +536,11 @@
       <div class="hmda-section-title"><span class="sec-num">7</span>Explainability &mdash; SHAP Analysis</div>
       <div class="shap-grid">
         <div class="chart-card">
-          <img src="assets/hmda/15_shap_summary.png" alt="SHAP beeswarm summary plot" />
+          <img src="assets/15_shap_summary.png" alt="SHAP beeswarm summary plot" />
           <div class="chart-caption"><strong>SHAP Beeswarm Plot.</strong> Each point is one loan application. The x-axis shows the SHAP value (contribution to denial probability). Features are sorted by mean absolute SHAP value — the most influential predictors are at the top. High log income strongly reduces denial probability; high loan-to-income ratio and rate spread increase it. Minority population percentage appears in the top features with positive SHAP values, flagging potential disparate impact that warrants further fair lending analysis.</div>
         </div>
         <div class="chart-card">
-          <img src="assets/hmda/16_shap_waterfall_denial.png" alt="SHAP waterfall for top denial" />
+          <img src="assets/16_shap_waterfall_denial.png" alt="SHAP waterfall for top denial" />
           <div class="chart-caption"><strong>Waterfall Plot &mdash; Top Denial Case.</strong> Decomposes a single application's predicted denial probability into individual feature contributions. Red bars push denial probability higher; blue bars push it lower. Starting from the base rate, this particular applicant's high loan-to-income ratio and rate spread dominate the denial signal, with income insufficient to offset them.</div>
         </div>
       </div>
