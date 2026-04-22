@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HMDA Mortgage Risk &mdash; Pat Lanza</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet" />
+  <style>
+    /* ── HMDA-specific styles ── */
+    .hmda-main { padding: 3rem 0 6rem; }
+
+    /* Overview banner */
+    .overview-banner {
+      display: flex; align-items: flex-start; gap: 2rem;
+      padding: 1.5rem 1.75rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      margin-bottom: 3rem;
+      position: relative; overflow: hidden;
+    }
+    .overview-banner::before {
+      content: '';
+      position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+      background: var(--accent); border-radius: 4px 0 0 4px;
+    }
+    .overview-banner-body { flex: 1; }
+    .overview-banner-body h2 {
+      font-size: 1.1rem; font-weight: 700; margin-bottom: 0.4rem;
+    }
+    .overview-banner-body p { font-size: 0.875rem; color: var(--text2); line-height: 1.7; max-width: 72ch; }
+    .overview-stats {
+      display: flex; gap: 1.75rem; flex-shrink: 0; align-items: flex-start;
+      padding-top: 0.15rem;
+    }
+    .ov-stat { display: flex; flex-direction: column; gap: 0.15rem; text-align: right; }
+    .ov-stat-val { font-size: 1.75rem; font-weight: 700; letter-spacing: -0.04em; color: var(--accent); line-height: 1; }
+    .ov-stat-lbl { font-size: 0.67rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); }
+
+    /* Section */
+    .hmda-section { margin-bottom: 3.5rem; }
+    .hmda-section-title {
+      font-size: 1.05rem; font-weight: 700; letter-spacing: -0.01em;
+      margin-bottom: 1.25rem; padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .hmda-section-title .sec-num {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 1.6rem; height: 1.6rem;
+      background: var(--accent); color: #100f0d;
+      border-radius: 50%; font-size: 0.75rem; font-weight: 700;
+      margin-right: 0.5rem; flex-shrink: 0;
+    }
+
+    /* Model cards */
+    .model-grid {
+      display: grid; grid-template-columns: repeat(3,1fr); gap: 1.25rem;
+      margin-bottom: 2rem;
+    }
+    .model-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      display: flex; flex-direction: column; gap: 0.6rem;
+      position: relative; overflow: hidden;
+      transition: border-color var(--transition), transform var(--transition), box-shadow var(--transition);
+    }
+    .model-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 36px rgba(0,0,0,0.3);
+    }
+    .model-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    }
+    .card-linear::before  { background: #8b9bf4; }
+    .card-logistic::before { background: var(--accent); }
+    .card-nn::before      { background: #5fb08a; }
+    .card-linear:hover   { border-color: rgba(139,155,244,0.3); }
+    .card-logistic:hover { border-color: rgba(200,169,110,0.3); }
+    .card-nn:hover       { border-color: rgba(95,176,138,0.3); }
+
+    .model-label {
+      font-size: 0.68rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+    }
+    .lbl-linear  { color: #8b9bf4; }
+    .lbl-logistic { color: var(--accent); }
+    .lbl-nn      { color: #5fb08a; }
+
+    .model-name { font-size: 1rem; font-weight: 700; line-height: 1.2; }
+    .model-verdict {
+      font-size: 0.75rem; color: var(--text2);
+      border-top: 1px solid var(--border); padding-top: 0.6rem; margin-top: 0.2rem;
+      line-height: 1.5;
+    }
+
+    .metrics-list { display: flex; flex-direction: column; gap: 0.35rem; margin-top: 0.2rem; }
+    .metric-row { display: flex; justify-content: space-between; font-size: 0.78rem; }
+    .metric-row span:first-child { color: var(--text2); }
+    .metric-row span:last-child { font-weight: 600; color: var(--text); }
+    .metric-best { color: #5fb08a !important; }
+    .metric-worst { color: var(--text3) !important; }
+
+    /* Winner callout */
+    .winner-callout {
+      background: rgba(95,176,138,0.07);
+      border: 1px solid rgba(95,176,138,0.2);
+      border-radius: var(--radius-lg);
+      padding: 1.1rem 1.5rem;
+      margin-bottom: 2.5rem;
+      font-size: 0.875rem;
+      line-height: 1.7;
+      color: var(--text2);
+      position: relative; overflow: hidden;
+    }
+    .winner-callout::before {
+      content: '';
+      position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+      background: #5fb08a;
+    }
+    .winner-callout strong { color: var(--text); }
+
+    /* Chart grid */
+    .chart-grid-2 {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;
+    }
+    .chart-grid-3 {
+      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.25rem;
+    }
+    .chart-full { margin-bottom: 1.25rem; }
+    .chart-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      transition: border-color var(--transition);
+    }
+    .chart-card:hover { border-color: var(--border2); }
+    .chart-card img {
+      width: 100%; display: block;
+    }
+    .chart-caption {
+      padding: 0.8rem 1rem;
+      font-size: 0.75rem; color: var(--text2);
+      line-height: 1.5;
+      border-top: 1px solid var(--border);
+    }
+    .chart-caption strong { color: var(--text); }
+
+    /* Key findings */
+    .findings-grid {
+      display: grid; grid-template-columns: repeat(3,1fr); gap: 1.25rem;
+    }
+    .finding-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+    }
+    .finding-num {
+      font-size: 2.5rem; font-weight: 700; letter-spacing: -0.04em;
+      line-height: 1; color: var(--accent); margin-bottom: 0.5rem;
+    }
+    .finding-title { font-size: 0.9rem; font-weight: 700; margin-bottom: 0.4rem; }
+    .finding-body { font-size: 0.8rem; color: var(--text2); line-height: 1.6; }
+
+    /* SHAP section */
+    .shap-grid {
+      display: grid; grid-template-columns: 3fr 2fr; gap: 1.25rem;
+    }
+
+    /* Insights strip */
+    .insights-strip {
+      display: grid; grid-template-columns: repeat(2,1fr); gap: 1rem;
+      margin-bottom: 1.25rem;
+    }
+    .insight-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem 1.25rem;
+    }
+    .insight-label {
+      font-size: 0.67rem; font-weight: 700; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--text3); margin-bottom: 0.3rem;
+    }
+    .insight-text { font-size: 0.83rem; color: var(--text); line-height: 1.55; }
+    .insight-text strong { color: var(--accent); }
+
+    /* Data pipeline */
+    .pipeline-steps {
+      display: flex; flex-direction: column; gap: 0; counter-reset: pipeline-step;
+    }
+    .pipeline-step {
+      display: flex; gap: 1.25rem;
+      padding: 1.1rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .pipeline-step:last-child { border-bottom: none; }
+    .step-num {
+      width: 2rem; height: 2rem; border-radius: 50%; flex-shrink: 0;
+      background: var(--surface2); border: 1px solid var(--border2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem; font-weight: 700; color: var(--accent);
+      margin-top: 0.1rem;
+    }
+    .step-body { flex: 1; }
+    .step-title { font-size: 0.9rem; font-weight: 700; margin-bottom: 0.2rem; }
+    .step-desc { font-size: 0.8rem; color: var(--text2); line-height: 1.6; }
+
+    /* Metrics table */
+    .metrics-table-wrap { overflow-x: auto; border-radius: var(--radius-lg); border: 1px solid var(--border); }
+    table.metrics-table {
+      width: 100%; border-collapse: collapse; font-size: 0.83rem;
+    }
+    .metrics-table thead th {
+      background: var(--surface2); padding: 0.75rem 1.1rem;
+      text-align: right; font-weight: 600; color: var(--text2);
+      border-bottom: 1px solid var(--border); white-space: nowrap;
+    }
+    .metrics-table thead th:first-child { text-align: left; }
+    .metrics-table tbody tr { border-bottom: 1px solid var(--border); transition: background var(--transition); }
+    .metrics-table tbody tr:last-child { border-bottom: none; }
+    .metrics-table tbody tr:hover { background: var(--surface2); }
+    .metrics-table td { padding: 0.75rem 1.1rem; text-align: right; color: var(--text); }
+    .metrics-table td:first-child { text-align: left; font-weight: 600; color: var(--text); }
+    .metrics-table td.best { color: #5fb08a; font-weight: 700; }
+    .metrics-table td.note { font-size: 0.73rem; color: var(--text3); font-style: italic; }
+
+    /* Disclaimer */
+    .disclaimer {
+      font-size: 0.75rem; color: var(--text3); line-height: 1.6;
+      padding: 1rem 1.25rem;
+      border: 1px solid var(--border); border-radius: var(--radius);
+      margin-top: 3rem;
+    }
+
+    @media (max-width: 900px) {
+      .model-grid { grid-template-columns: 1fr; }
+      .chart-grid-2, .chart-grid-3 { grid-template-columns: 1fr; }
+      .findings-grid { grid-template-columns: repeat(2,1fr); }
+      .shap-grid { grid-template-columns: 1fr; }
+      .insights-strip { grid-template-columns: 1fr; }
+      .overview-stats { flex-direction: row; flex-wrap: wrap; gap: 1rem; }
+      .overview-banner { flex-direction: column; gap: 1.25rem; }
+    }
+    @media (max-width: 600px) {
+      .findings-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body class="inner-page">
+
+  <!-- Nav -->
+  <nav class="nav">
+    <a href="index.html" class="nav-logo">PL</a>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="experience.html">Experience</a></li>
+      <li><a href="projects.html" class="active">Projects</a></li>
+      <li><a href="photos.html">Photos</a></li>
+    </ul>
+    <div class="nav-right">
+      <button class="theme-toggle" aria-label="Toggle theme">
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+      <button class="nav-menu-btn" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Page Hero -->
+  <header class="page-hero">
+    <div class="container">
+      <div class="section-label">ML Research &middot; Fair Lending</div>
+      <h1 class="page-hero-title">HMDA Mortgage Risk Analysis</h1>
+      <p class="page-hero-sub">Three-model ML pipeline built on 14.2 million loan applications to predict mortgage denial — with SHAP explainability for regulatory transparency.</p>
+    </div>
+  </header>
+
+  <main class="container hmda-main">
+
+    <!-- Overview banner -->
+    <div class="overview-banner reveal">
+      <div class="overview-banner-body">
+        <h2>Project Overview</h2>
+        <p>The Home Mortgage Disclosure Act (HMDA) requires US lenders to report every mortgage application. This project ingests the full 2017 nationwide LAR dataset (14.2M rows), builds a binary denial classifier across three model architectures, and applies SHAP to surface which borrower and loan characteristics drive predicted denials. The end goal mirrors what a real risk team or regulator would produce: a model that is accurate, explainable, and regulatorily defensible under ECOA.</p>
+      </div>
+      <div class="overview-stats">
+        <div class="ov-stat">
+          <div class="ov-stat-val">14.2M</div>
+          <div class="ov-stat-lbl">HMDA Records</div>
+        </div>
+        <div class="ov-stat">
+          <div class="ov-stat-val">300K</div>
+          <div class="ov-stat-lbl">Training Sample</div>
+        </div>
+        <div class="ov-stat">
+          <div class="ov-stat-val">67.3%</div>
+          <div class="ov-stat-lbl">Best AUC</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 1. Data Pipeline -->
+    <section class="hmda-section reveal">
+      <div class="hmda-section-title"><span class="sec-num">1</span>Data Pipeline &amp; Feature Engineering</div>
+      <div class="pipeline-steps">
+        <div class="pipeline-step">
+          <div class="step-num">A</div>
+          <div class="step-body">
+            <div class="step-title">Load &amp; Filter</div>
+            <div class="step-desc">Loaded only necessary columns via <code>usecols</code> to avoid memory exhaustion on the 14.2M-row CSV. Filtered to home purchase applications with binary outcomes (originated or denied) — removing withdrawn, incomplete, and non-primary categories. Final usable set: ~3.1M records.</div>
+          </div>
+        </div>
+        <div class="pipeline-step">
+          <div class="step-num">B</div>
+          <div class="step-body">
+            <div class="step-title">Stratified Sample</div>
+            <div class="step-desc">Stratified to 300K rows (150K originated, 150K denied) to balance classes before SMOTE. Stratification ensures the sample preserves the joint distribution of outcome &times; loan type, preventing geographic or product-type overrepresentation.</div>
+          </div>
+        </div>
+        <div class="pipeline-step">
+          <div class="step-num">C</div>
+          <div class="step-body">
+            <div class="step-title">Feature Engineering</div>
+            <div class="step-desc">14 features constructed from available 2017 HMDA fields. Log transforms applied to loan amount, income, and area median income to reduce right-skew. Derived <code>loan_to_income_ratio</code> as a creditworthiness proxy. <code>rate_spread</code> used as a credit risk signal (higher spread = riskier loan). Categorical variables one-hot encoded (occupancy type, loan type, lien status).</div>
+          </div>
+        </div>
+        <div class="pipeline-step">
+          <div class="step-num">D</div>
+          <div class="step-body">
+            <div class="step-title">Train / Test Split + SMOTE</div>
+            <div class="step-desc">80/20 stratified split. SMOTE applied to the training set only — never the test set — to avoid data leakage. StandardScaler fit on training data and applied to test, preserving a realistic evaluation environment.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chart-grid-2" style="margin-top:1.5rem;">
+        <div class="chart-card">
+          <img src="assets/hmda/01_null_heatmap.png" alt="Null value heatmap" />
+          <div class="chart-caption"><strong>Missing Values.</strong> Heatmap of null fractions per feature. Rate spread has the highest missing rate — it is only reported for higher-priced loans — which is itself a signal. All nulls imputed with median before modeling.</div>
+        </div>
+        <div class="chart-card">
+          <img src="assets/hmda/03_feature_distributions.png" alt="Feature distributions" />
+          <div class="chart-caption"><strong>Feature Distributions.</strong> Raw vs. log-transformed distributions for continuous predictors. Loan amount and applicant income are heavily right-skewed in raw form; log transforms produce near-normal distributions that improve linear model stability.</div>
+        </div>
+      </div>
+      <div class="chart-full">
+        <div class="chart-card">
+          <img src="assets/hmda/02_correlation_matrix.png" alt="Feature correlation matrix" />
+          <div class="chart-caption"><strong>Feature Correlation.</strong> Pearson correlation matrix across all 14 features. Log loan amount and log income are positively correlated (0.45), which is expected — higher-income applicants request larger loans. No pair exceeds 0.7, so multicollinearity is not a concern for logistic regression.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. Models -->
+    <section class="hmda-section reveal">
+      <div class="hmda-section-title"><span class="sec-num">2</span>Model Architecture &amp; Results</div>
+
+      <div class="model-grid">
+
+        <!-- Linear Regression -->
+        <div class="model-card card-linear">
+          <div class="model-label lbl-linear">Step 1 &mdash; Baseline</div>
+          <div class="model-name">Linear Regression</div>
+          <div class="metrics-list">
+            <div class="metric-row"><span>Accuracy</span><span>61.3%</span></div>
+            <div class="metric-row"><span>Precision</span><span>16.1%</span></div>
+            <div class="metric-row"><span class="metric-best">Recall (denial)</span><span class="metric-best">59.7%</span></div>
+            <div class="metric-row"><span>F1 Score</span><span>0.254</span></div>
+            <div class="metric-row"><span>ROC-AUC</span><span class="metric-worst">&mdash;</span></div>
+          </div>
+          <div class="model-verdict">Deliberately misapplied — outputs are unbounded real numbers, not probabilities. Shown as a pedagogical baseline to illustrate why tool choice matters. Thresholded at 0.5; residuals confirm predictions outside [0,1].</div>
+        </div>
+
+        <!-- Logistic Regression -->
+        <div class="model-card card-logistic">
+          <div class="model-label lbl-logistic">Step 2 &mdash; Correct Tool</div>
+          <div class="model-name">Logistic Regression</div>
+          <div class="metrics-list">
+            <div class="metric-row"><span>Accuracy</span><span>61.2%</span></div>
+            <div class="metric-row"><span>Precision</span><span>16.1%</span></div>
+            <div class="metric-row"><span class="metric-best">Recall (denial)</span><span class="metric-best">59.7%</span></div>
+            <div class="metric-row"><span>F1 Score</span><span>0.253</span></div>
+            <div class="metric-row"><span class="metric-best">ROC-AUC</span><span class="metric-best">0.646</span></div>
+          </div>
+          <div class="model-verdict">The statistically appropriate tool for binary classification. Bounded probability outputs, interpretable coefficients, and strong recall. Preferred for compliance settings where coefficient interpretability is legally required.</div>
+        </div>
+
+        <!-- Neural Net -->
+        <div class="model-card card-nn">
+          <div class="model-label lbl-nn">Step 3 &mdash; Flexible Learner</div>
+          <div class="model-name">DenialNet (PyTorch)</div>
+          <div class="metrics-list">
+            <div class="metric-row"><span class="metric-best">Accuracy</span><span class="metric-best">70.3%</span></div>
+            <div class="metric-row"><span class="metric-best">Precision</span><span class="metric-best">19.0%</span></div>
+            <div class="metric-row"><span>Recall (denial)</span><span>52.1%</span></div>
+            <div class="metric-row"><span class="metric-best">F1 Score</span><span class="metric-best">0.279</span></div>
+            <div class="metric-row"><span class="metric-best">ROC-AUC</span><span class="metric-best">0.673</span></div>
+          </div>
+          <div class="model-verdict">Two-layer feedforward: Dense(64, ReLU, Dropout 0.3) &rarr; Dense(32, ReLU, Dropout 0.2) &rarr; Sigmoid. Highest overall accuracy and AUC, but recall trades off against logistic. Best suited for environments prioritizing precision over denial detection rate.</div>
+        </div>
+
+      </div>
+
+      <!-- Winner callout -->
+      <div class="winner-callout">
+        <strong>Recommended Model: Logistic Regression</strong> &mdash; In a lending context, recall on denials is the critical metric. A false negative (approving a risky loan) carries direct financial loss; a false positive (denying a creditworthy applicant) triggers a manual review — an asymmetric cost structure. Logistic regression matches the neural net on denial recall (59.7% vs. 52.1%) while providing fully interpretable coefficients, satisfying ECOA explainability requirements. DenialNet's accuracy gain (+9.1pp) does not justify losing interpretability or the recall regression for this use case.
+      </div>
+
+      <!-- Metrics table -->
+      <div class="metrics-table-wrap">
+        <table class="metrics-table">
+          <thead>
+            <tr>
+              <th>Model</th>
+              <th>Accuracy</th>
+              <th>Precision</th>
+              <th>Recall</th>
+              <th>F1</th>
+              <th>ROC-AUC</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Linear Regression</td>
+              <td>0.6129</td>
+              <td>0.1612</td>
+              <td class="best">0.5965</td>
+              <td>0.2538</td>
+              <td class="note">N/A (unbounded)</td>
+            </tr>
+            <tr>
+              <td>Logistic Regression</td>
+              <td>0.6115</td>
+              <td>0.1607</td>
+              <td class="best">0.5965</td>
+              <td>0.2532</td>
+              <td>0.6461</td>
+            </tr>
+            <tr>
+              <td>DenialNet (Neural Net)</td>
+              <td class="best">0.7025</td>
+              <td class="best">0.1902</td>
+              <td>0.5207</td>
+              <td class="best">0.2787</td>
+              <td class="best">0.6726</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 3. Linear Regression Charts -->
+    <section class="hmda-section reveal">
+      <div class="hmda-section-title"><span class="sec-num">3</span>Linear Regression &mdash; Baseline Diagnostics</div>
+      <div class="chart-grid-3">
+        <div class="chart-card">
+          <img src="assets/hmda/04_linear_regression_coefficients.png" alt="Linear regression coefficients" />
+          <div class="chart-caption"><strong>OLS Coefficients.</strong> Income and loan amount are the strongest predictors of origination in both directions. Rate spread has a large positive coefficient — higher-spread loans are predicted to be denied more often.</div>
+        </div>
+        <div class="chart-card">
+          <img src="assets/hmda/05_linear_regression_confusion_matrix.png" alt="Linear regression confusion matrix" />
+          <div class="chart-caption"><strong>Confusion Matrix.</strong> Despite unbounded outputs, thresholding at 0.5 achieves ~60% accuracy. The model correctly identifies many denials but misclassifies a substantial share of originations as denials (high false positive rate).</div>
+        </div>
+        <div class="chart-card">
+          <img src="assets/hmda/06_linear_regression_residuals.png" alt="Linear regression residuals" />
+          <div class="chart-caption"><strong>Residuals.</strong> Predictions range well outside [0,1], confirming that linear regression is not a valid probability estimator for a binary outcome. This motivates the transition to logistic regression.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. Logistic Regression Charts -->
+    <section class="hmda-section reveal">
+      <div class="hmda-section-title"><span class="sec-num">4</span>Logistic Regression &mdash; Classification Performance</div>
+      <div class="chart-grid-2">
+        <div class="chart-card">
+          <img src="assets/hmda/07_logistic_regression_coefficients.png" alt="Logistic regression coefficients" />
+          <div class="chart-caption"><strong>Log-Odds &amp; Odds Ratios.</strong> Each unit increase in log income decreases the log-odds of denial by ~0.42. Rate spread has the highest positive log-odds coefficient — a one-unit increase raises denial probability substantially. Minority population percentage has a small but positive denial coefficient, an important fair lending signal worth further investigation.</div>
+        </div>
+        <div class="chart-card">
+          <img src="assets/hmda/08_logistic_regression_confusion_matrix.png" alt="Logistic regression confusion matrix" />
+          <div class="chart-caption"><strong>Confusion Matrix.</strong> 59.7% recall on denied applications. The model correctly identifies the majority of high-risk loans. Precision (16.1%) is low due to class imbalance — denials are a minority even after SMOTE on training data, but testing on a realistically imbalanced test set reveals the challenge of separating the two classes without more predictive features.</div>
+        </div>
+      </div>
+      <div class="chart-grid-2">
+        <div class="chart-card">
+          <img src="assets/hmda/09_logistic_regression_roc.png" alt="ROC curve" />
+          <div class="chart-caption"><strong>ROC Curve (AUC = 0.646).</strong> The model performs materially better than a random classifier (AUC = 0.5). The curve shows a reasonable true-positive rate across a range of operating thresholds, giving a risk desk flexibility to tune the cutoff based on cost asymmetry.</div>
+        </div>
+        <div class="chart-card">
+          <img src="assets/hmda/10_logistic_regression_pr_curve.png" alt="Precision-Recall curve" />
+          <div class="chart-caption"><strong>Precision-Recall Curve.</strong> PR curves are more informative than ROC when classes are imbalanced. The area under the PR curve reflects the challenge of achieving high precision at high recall — a meaningful tradeoff for any production lending system.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. Neural Net Charts -->
+    <section class="hmda-section reveal">
+      <div class="hmda-section-title"><span class="sec-num">5</span>DenialNet &mdash; Neural Network</div>
+      <div class="chart-grid-3">
+        <div class="chart-card">
+          <img src="assets/hmda/11_nn_training_curve.png" alt="Neural net training curve" />
+          <div class="chart-caption"><strong>Training Curve.</strong> Train and validation loss converge smoothly across epochs. The small gap between train and val loss confirms that dropout regularization is controlling overfitting effectively.</div>
+        </div>
+        <div class="chart-card">
+          <img src="assets/hmda/12_nn_confusion_matrix.png" alt="Neural net confusion matrix" />
+          <div class="chart-caption"><strong>Confusion Matrix.</strong> DenialNet achieves higher overall accuracy (70.3%) and precision (19.0%) compared to logistic regression. The tradeoff is lower denial recall (52.1%), meaning the network misses more high-risk loans than the logistic model.</div>
+        </div>
+        <div class="chart-card">
+          <img src="assets/hmda/13_roc_comparison.png" alt="ROC comparison" />
+          <div class="chart-caption"><strong>ROC Comparison.</strong> DenialNet (AUC 0.673) outperforms logistic regression (AUC 0.646) across most operating thresholds. The gap is modest, suggesting that the 14 engineered features largely capture available signal — more data rather than model complexity would drive the next performance gain.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. Model Comparison -->
+    <section class="hmda-section reveal">
+      <div class="hmda-section-title"><span class="sec-num">6</span>Full Model Comparison</div>
+      <div class="chart-full">
+        <div class="chart-card">
+          <img src="assets/hmda/14_model_comparison_dashboard.png" alt="Model comparison dashboard" />
+          <div class="chart-caption"><strong>2&times;3 Comparison Dashboard.</strong> Side-by-side visualization of all three models across confusion matrices, ROC curves, and key metrics. DenialNet leads on accuracy and AUC; logistic regression matches on recall. The dashboard illustrates the precision-recall tradeoff that governs model selection in practice.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. SHAP -->
+    <section class="hmda-section reveal">
+      <div class="hmda-section-title"><span class="sec-num">7</span>Explainability &mdash; SHAP Analysis</div>
+      <div class="shap-grid">
+        <div class="chart-card">
+          <img src="assets/hmda/15_shap_summary.png" alt="SHAP beeswarm summary plot" />
+          <div class="chart-caption"><strong>SHAP Beeswarm Plot.</strong> Each point is one loan application. The x-axis shows the SHAP value (contribution to denial probability). Features are sorted by mean absolute SHAP value — the most influential predictors are at the top. High log income strongly reduces denial probability; high loan-to-income ratio and rate spread increase it. Minority population percentage appears in the top features with positive SHAP values, flagging potential disparate impact that warrants further fair lending analysis.</div>
+        </div>
+        <div class="chart-card">
+          <img src="assets/hmda/16_shap_waterfall_denial.png" alt="SHAP waterfall for top denial" />
+          <div class="chart-caption"><strong>Waterfall Plot &mdash; Top Denial Case.</strong> Decomposes a single application's predicted denial probability into individual feature contributions. Red bars push denial probability higher; blue bars push it lower. Starting from the base rate, this particular applicant's high loan-to-income ratio and rate spread dominate the denial signal, with income insufficient to offset them.</div>
+        </div>
+      </div>
+
+      <div class="insights-strip" style="margin-top:1.25rem;">
+        <div class="insight-item">
+          <div class="insight-label">Top Driver of Denial</div>
+          <div class="insight-text"><strong>Loan-to-Income Ratio</strong> is consistently the strongest denial signal. Applicants with loan amounts exceeding 4&times; annual income see sharply elevated denial probability across all three models.</div>
+        </div>
+        <div class="insight-item">
+          <div class="insight-label">Credit Risk Proxy</div>
+          <div class="insight-text"><strong>Rate Spread</strong> (the spread over APOR) is a strong denial predictor. Higher-priced loans already reflect lender risk assessment, creating a signal that the model correctly amplifies.</div>
+        </div>
+        <div class="insight-item">
+          <div class="insight-label">Income Effect</div>
+          <div class="insight-text"><strong>Log Applicant Income</strong> has the largest protective effect. A 1-unit increase in log income reduces denial log-odds by approximately 0.42 — controlling for loan size and ratio.</div>
+        </div>
+        <div class="insight-item">
+          <div class="insight-label">Fair Lending Flag</div>
+          <div class="insight-text"><strong>Minority Population %</strong> of the census tract appears in the top SHAP features with positive denial contribution. This does not prove discrimination — it likely co-varies with income and tract-level economic conditions — but warrants disparate impact testing under ECOA and Regulation B.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 8. Key Findings -->
+    <section class="hmda-section reveal">
+      <div class="hmda-section-title"><span class="sec-num">8</span>Key Findings</div>
+      <div class="findings-grid">
+        <div class="finding-card">
+          <div class="finding-num">01</div>
+          <div class="finding-title">Accuracy is a Misleading Metric</div>
+          <div class="finding-body">With imbalanced classes, a model that predicts "originated" for every application achieves &gt;80% raw accuracy. This project shows concretely why recall on the minority class — denied applications — is the operationally meaningful target in lending contexts.</div>
+        </div>
+        <div class="finding-card">
+          <div class="finding-num">02</div>
+          <div class="finding-title">The Model Progression Matters</div>
+          <div class="finding-body">Linear regression &rarr; logistic regression &rarr; neural network demonstrates a deliberate escalation in model complexity, with each transition justified by measurable gains. The linear model's residuals outside [0,1] make the case for logistic; the neural net's AUC improvement makes the case for learned nonlinearity.</div>
+        </div>
+        <div class="finding-card">
+          <div class="finding-num">03</div>
+          <div class="finding-title">Asymmetric Costs Drive Model Choice</div>
+          <div class="finding-body">False negatives (approving a risky loan) and false positives (denying a creditworthy applicant) carry fundamentally different costs. This asymmetry, not accuracy, should drive model selection — a principle formalized in cost-sensitive learning and directly relevant to HMDA compliance.</div>
+        </div>
+        <div class="finding-card">
+          <div class="finding-num">04</div>
+          <div class="finding-title">Explainability is a Legal Requirement</div>
+          <div class="finding-body">Under ECOA, lenders must provide specific reasons for adverse action. SHAP satisfies this requirement by decomposing each prediction into feature-level contributions that can be directly mapped to adverse action codes (high debt-to-income, insufficient income, etc.).</div>
+        </div>
+        <div class="finding-card">
+          <div class="finding-num">05</div>
+          <div class="finding-title">14 Features Leave Signal on the Table</div>
+          <div class="finding-body">AUC of 0.673 is reasonable but modest. The 2017 HMDA dataset lacks credit scores, DTI, LTV, and property value — data points collected under the 2018 HMDA expansion. Adding those fields to the feature set would likely push AUC above 0.80 with the same architecture.</div>
+        </div>
+        <div class="finding-card">
+          <div class="finding-num">06</div>
+          <div class="finding-title">Census Tract Signals Warrant Scrutiny</div>
+          <div class="finding-body">Minority population percentage and tract-to-MSA income ratio both contribute SHAP signal. While these may be legitimate creditworthiness proxies in aggregate, their use in a production model requires disparate impact analysis — any proxy correlated with a protected class triggers fair lending obligations.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Methodology -->
+    <section class="hmda-section reveal">
+      <div class="hmda-section-title"><span class="sec-num">9</span>Methodology</div>
+      <div class="insights-strip">
+        <div class="insight-item">
+          <div class="insight-label">Dataset</div>
+          <div class="insight-text">HMDA 2017 Nationwide LAR — public dataset published by the CFPB. 14.2M application records across all US lenders. Filtered to home purchase, binary outcome (originated / denied). Stratified sample to 300K records, 80/20 train/test split.</div>
+        </div>
+        <div class="insight-item">
+          <div class="insight-label">Class Imbalance</div>
+          <div class="insight-text">SMOTE (Synthetic Minority Over-sampling Technique) applied to the training set only. Test set retains the natural class imbalance to produce realistic evaluation metrics. Imbalance ratio in test set: approximately 4.5:1 (originated:denied).</div>
+        </div>
+        <div class="insight-item">
+          <div class="insight-label">Neural Network</div>
+          <div class="insight-text">DenialNet: 14-feature input &rarr; Dense(64, ReLU, Dropout 0.3) &rarr; Dense(32, ReLU, Dropout 0.2) &rarr; Sigmoid output. Binary cross-entropy loss, Adam optimizer (lr=1e-3), trained for 30 epochs. Early stopping on validation loss.</div>
+        </div>
+        <div class="insight-item">
+          <div class="insight-label">SHAP</div>
+          <div class="insight-text">SHAP LinearExplainer applied to logistic regression model on a 1,000-record test subset. Beeswarm plot shows global feature importance; waterfall decomposition shows the highest-confidence denial case. All SHAP values computed on standardized features.</div>
+        </div>
+      </div>
+    </section>
+
+    <div class="disclaimer">
+      This project is for educational and research purposes only. Model outputs should not be used to make actual lending decisions. The HMDA 2017 Nationwide LAR dataset is publicly available via the CFPB. Model performance metrics are computed on a held-out test set and may not generalize to other years, geographies, or lender populations. References to ECOA and HMDA regulatory requirements are informational summaries only.
+    </div>
+
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-inner">
+      <span>&copy; 2026 Patrick Lanza</span>
+      <span>Westfield, NJ &middot; Boston, MA</span>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

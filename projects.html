@@ -20,9 +20,15 @@
       <li><a href="projects.html" class="active">Projects</a></li>
       <li><a href="photos.html">Photos</a></li>
     </ul>
-    <button class="nav-menu-btn" aria-label="Toggle menu">
-      <span></span><span></span><span></span>
-    </button>
+    <div class="nav-right">
+      <button class="theme-toggle" aria-label="Toggle theme">
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+      <button class="nav-menu-btn" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
   </nav>
 
   <!-- Page Hero -->
@@ -88,16 +94,32 @@
       <div class="project-arrow">View Analysis &rarr;</div>
     </a>
 
-      <!-- Ghost placeholders -->
-      <div class="project-card project-card-ghost reveal">
-        <div class="ghost-bar ghost-bar-sm"></div>
-        <div class="ghost-bar ghost-bar-lg"></div>
-        <div class="ghost-bar ghost-bar-md"></div>
-        <div class="ghost-tags">
-          <div class="ghost-tag"></div>
-          <div class="ghost-tag"></div>
+      <!-- HMDA Mortgage Risk -->
+      <a href="hmda-mortgage.html" class="project-card project-card-real reveal">
+        <div class="project-card-top">
+          <div class="project-type-label">ML Research &middot; Fair Lending</div>
         </div>
-      </div>
+        <h2 class="project-title">HMDA Mortgage Risk Analysis</h2>
+        <p class="project-desc">Three-model ML pipeline on 14.2M HMDA loan applications to predict mortgage denial. Covers linear regression baseline, logistic regression, and a PyTorch neural network (DenialNet), with SHAP explainability for regulatory transparency under ECOA.</p>
+        <div class="project-meta-row">
+          <ul style="margin:0; padding-left:1.2rem;">
+            <li class="project-meta-item">Records: <strong>14.2M</strong></li>
+            <li class="project-meta-item">Best AUC: <strong style="color:#5fb08a;">0.673</strong></li>
+            <li class="project-meta-item">Best Recall: <strong style="color:#5fb08a;">59.7%</strong></li>
+          </ul>
+        </div>
+        <div class="project-tags">
+          <span class="tag tag-accent">Python</span>
+          <span class="tag">PyTorch</span>
+          <span class="tag">SHAP</span>
+          <span class="tag">Logistic Regression</span>
+          <span class="tag">SMOTE</span>
+          <span class="tag">HMDA / CFPB</span>
+        </div>
+        <div class="project-arrow">View Analysis &rarr;</div>
+      </a>
+
+      <!-- Ghost placeholder -->
       <div class="project-card project-card-ghost reveal">
         <div class="ghost-bar ghost-bar-sm"></div>
         <div class="ghost-bar ghost-bar-lg"></div>
